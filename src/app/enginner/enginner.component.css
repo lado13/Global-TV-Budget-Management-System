@@ -53,7 +53,7 @@
 .custom-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #2f313d;
+  background-color: #121523;
 }
 .custom-table th {
   text-align: left;
@@ -227,4 +227,94 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+@media (max-width: 991px) {
+  /* 📄 Card container */
+  .custom-table tr {
+    background: #2f313d;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1882352941);
+    display: block;
+  }
+  /* 📦 Inner content box (like image border) */
+  .custom-table tr td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 4px;
+    border: none;
+    font-size: 13px;
+    color: #e5e7eb;
+  }
+  /* 🏷️ Labels */
+  .custom-table td::before {
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: 12px;
+  }
+  .custom-table td:nth-child(1)::before {
+    content: "ID";
+  }
+  .custom-table td:nth-child(2)::before {
+    content: "მყიდველი";
+  }
+  .custom-table td:nth-child(3)::before {
+    content: "მაღაზია";
+  }
+  .custom-table td:nth-child(4)::before {
+    content: "ტიპი";
+  }
+  .custom-table td:nth-child(5)::before {
+    content: "თანხა";
+  }
+  .custom-table td:nth-child(6)::before {
+    content: "თარიღი";
+  }
+  .custom-table td:nth-child(7)::before {
+    content: "ჩეკი";
+  }
+  /* 💰 Amount highlight */
+  .amount-text {
+    color: #4ade80;
+    font-weight: 700;
+  }
+  /* 🏷️ Badge style like image */
+  .type-badge {
+    background: #f3f4f6;
+    color: #111827;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+  /* 🆔 ID badge tweak */
+  .id-box {
+    background: #dbeafe;
+    color: #2563eb;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  /* 🎯 Actions bottom center */
+  .col-actions {
+    justify-content: center;
+    margin-top: 12px;
+    gap: 12px;
+  }
+  .col-actions button {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #e5e7eb;
+  }
+  .col-actions .btn-delete {
+    background: #fee2e2;
+  }
+  /* ❌ Hide header */
+  .custom-table thead {
+    display: none;
+  }
+}
+.custom-table tr {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
 }/*# sourceMappingURL=enginner.component.css.map */

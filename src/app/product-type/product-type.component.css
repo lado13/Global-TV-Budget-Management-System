@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .main-wrapper {
   max-width: 800px;
   margin: 40px auto;
@@ -49,7 +50,7 @@
 .custom-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #2f313d;
+  background-color: #121523;
 }
 .custom-table th {
   padding: 15px 20px;
@@ -217,4 +218,78 @@
   to {
     transform: rotate(360deg);
   }
+}
+@media (max-width: 768px) {
+  /* ❌ hide table header */
+  .custom-table thead {
+    display: none;
+  }
+  /* 📦 row becomes card */
+  .custom-table tbody tr {
+    display: block;
+    background: #2f313d;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    padding: 15px;
+  }
+  .custom-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border: none;
+    font-size: 13px;
+  }
+  /* 🏷 labels (fake headers) */
+  .custom-table td:nth-child(1)::before {
+    content: "ID";
+  }
+  .custom-table td:nth-child(2)::before {
+    content: "დასახელება";
+  }
+  .custom-table td:nth-child(3)::before {
+    content: "შექმნა";
+  }
+  .custom-table td:nth-child(4)::before {
+    content: "განახლება";
+  }
+  .custom-table td:nth-child(5)::before {
+    content: "მოქმედება";
+  }
+  .custom-table td::before {
+    font-weight: 700;
+    color: #9ca3af;
+  }
+  /* 🎯 actions center */
+  .actions {
+    justify-content: center !important;
+    margin-top: 10px;
+  }
+  /* ➕ input stack */
+  .add-card .input-group {
+    flex-direction: column;
+  }
+  .add-card .btn-add {
+    width: 100%;
+  }
+  /* 📦 modal responsive */
+  .modal-box {
+    width: 95%;
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 14px;
+  }
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+}
+
+.modal-box {
+  max-height: 90vh;
+  overflow-y: auto;
 }/*# sourceMappingURL=product-type.component.css.map */

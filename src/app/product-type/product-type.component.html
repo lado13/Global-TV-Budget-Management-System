@@ -1,5 +1,5 @@
 <div class="container main-wrapper">
-    <h2 class="page-title">პროდუქციის მენეჯმენტი</h2>
+    <h2 class="page-title">პროდუქციის დასახელება</h2>
 
     <div class="add-card">
         <div class="input-group">
@@ -29,13 +29,13 @@
                     <td><strong class="item-name">{{ item.name }}</strong></td>
                     <td>
                         <strong class="text-light" *ngIf="item.createAt">
-                             {{ item.createAt | date:'dd.MM.yyyy HH:mm' }}
+                            {{ item.createAt | date:'dd.MM.yyyy HH:mm' }}
                         </strong>
 
                     </td>
                     <td>
                         <strong class="text-light">
-                             {{ item.updateAt | date:'dd.MM.yyyy HH:mm' }}
+                            {{ item.updateAt | date:'dd.MM.yyyy HH:mm' }}
                         </strong>
                     </td>
                     <td class="actions">

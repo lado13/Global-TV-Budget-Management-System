@@ -69,7 +69,7 @@
 .custom-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #2f313d;
+  background-color: #121523;
 }
 .custom-table th {
   padding: 15px 20px;
@@ -284,4 +284,139 @@
   padding: 20px;
   border-radius: 8px;
   width: 400px;
+}
+
+/* =========================================
+   📱 RESPONSIVE FIX (CLEAN + MODERN)
+   ========================================= */
+@media (max-width: 991px) {
+  .main-wrapper {
+    margin: 20px 12px;
+  }
+  .page-title {
+    font-size: 20px;
+    text-align: center;
+  }
+  /* =========================
+     ➕ INPUT STACK
+     ========================= */
+  .add-card .budget-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .add-card .input-field {
+    width: 100%;
+  }
+  .btn-add-budget {
+    width: 100%;
+  }
+  /* =========================
+     📊 TABLE → CARD VIEW
+     ========================= */
+  .custom-table thead {
+    display: none;
+  }
+  .custom-table,
+  .custom-table tbody,
+  .custom-table tr,
+  .custom-table td {
+    display: block;
+    width: 100%;
+  }
+  .custom-table tr {
+    background: #2f313d;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .custom-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border: none;
+    font-size: 13px;
+    color: #e5e7eb;
+  }
+  /* labels */
+  .custom-table td::before {
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: 12px;
+  }
+  .custom-table td:nth-child(1)::before {
+    content: "პერიოდი";
+  }
+  .custom-table td:nth-child(2)::before {
+    content: "ბიუჯეტი";
+  }
+  .custom-table td:nth-child(3)::before {
+    content: "გადმოყოლილი";
+  }
+  .custom-table td:nth-child(4)::before {
+    content: "ჯამი";
+  }
+  .custom-table td:nth-child(5)::before {
+    content: "მოქმედება";
+  }
+  /* =========================
+     🎯 ACTIONS
+     ========================= */
+  .actions {
+    justify-content: center !important;
+    margin-top: 10px;
+    gap: 12px;
+  }
+  .actions button {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e7eb;
+  }
+  .btn-delete-icon {
+    background: #fee2e2;
+  }
+  /* =========================
+     🧾 MODAL FIX
+     ========================= */
+  .modal-backdrop {
+    align-items: flex-start;
+    padding: 15px;
+    overflow-y: auto;
+  }
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .modal-actions .btn-save,
+  .modal-actions .btn-cancel {
+    width: 100%;
+  }
+}
+/* =========================
+   ❗ CLEAN FIX (REMOVE DUPLICATE MODAL STYLE ISSUE)
+   ========================= */
+/* keep only ONE modal-backdrop definition */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  z-index: 1000;
 }/*# sourceMappingURL=month-budget.component.css.map */

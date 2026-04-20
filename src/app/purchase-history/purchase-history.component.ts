@@ -1,7 +1,3 @@
-
-
-
-
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -31,7 +27,14 @@ export class PurchaseHistoryComponent implements OnInit {
   files: Attachment[] = [];
   selectedPurchase: PurchaseHistory | null = null;
   isModalOpen = false;
+  isFormModalOpen = false;
+
   tempFiles: File[] = [];
+
+  // ================= PAGINATION =================
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -43,8 +46,6 @@ export class PurchaseHistoryComponent implements OnInit {
   ngOnInit(): void {
 
     this.form = this.fb.group({
-
-
       id: [0],
       purchaseDate: ['', Validators.required],
       merchantId: [null, Validators.required],
@@ -61,6 +62,26 @@ export class PurchaseHistoryComponent implements OnInit {
       this.files = res ?? [];
     });
   }
+
+  // ================= PAGINATED DATA =================
+  get pagedPurchases(): PurchaseHistory[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.purchases.slice(start, start + this.pageSize);
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  // ================= NAME HELPERS =================
 
   getBuyerName(id: number): string {
     const user = this.engineers.find(x => x.id === id);
@@ -83,23 +104,21 @@ export class PurchaseHistoryComponent implements OnInit {
 
     this.purchaseService.load();
 
-
-
     this.purchaseService.data$.subscribe(res => {
       if (res) {
 
-        this.purchases = [...res].sort((a, b) => {
+        const sorted = [...res].sort((a, b) => b.id - a.id);
 
-          return b.id - a.id;
+        this.purchases = sorted;
 
+        this.totalPages = Math.ceil(this.purchases.length / this.pageSize);
+        this.currentPage = 1;
 
-        });
       } else {
         this.purchases = [];
+        this.totalPages = 0;
       }
     });
-
-
 
     this.http.get<any[]>(environment.EnginnerApi)
       .subscribe(res => this.engineers = res ?? []);
@@ -111,7 +130,7 @@ export class PurchaseHistoryComponent implements OnInit {
       .subscribe(res => this.productTypes = res ?? []);
   }
 
-  // ================= BASE64 HELPER =================
+  // ================= BASE64 =================
 
   convertToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -125,9 +144,6 @@ export class PurchaseHistoryComponent implements OnInit {
       reader.onerror = err => reject(err);
     });
   }
-
-
-
 
   async save(): Promise<void> {
 
@@ -143,8 +159,9 @@ export class PurchaseHistoryComponent implements OnInit {
 
     const payload = { ...this.form.value, attachemnts: attachments };
 
-
-    const request = payload.id ? this.purchaseService.update(payload) : this.purchaseService.add(payload);
+    const request = payload.id
+      ? this.purchaseService.update(payload)
+      : this.purchaseService.add(payload);
 
     request.subscribe({
       next: () => {
@@ -155,13 +172,10 @@ export class PurchaseHistoryComponent implements OnInit {
     });
   }
 
-
-
-  // ================= CRUD =================
+  // ================= DELETE =================
 
   delete(p: PurchaseHistory): void {
     const confirmDelete = confirm('მართლა გინდა ამ შესყიდვის წაშლა?');
-
     if (!confirmDelete) return;
 
     this.purchaseService.delete(p).subscribe(() => {
@@ -169,20 +183,17 @@ export class PurchaseHistoryComponent implements OnInit {
     });
   }
 
-  // ================= FILE SELECT =================
+  // ================= FILES =================
 
   onCreateFileSelect(event: any): void {
     const files: FileList = event.target.files;
     this.tempFiles = files ? Array.from(files) : [];
   }
 
-  // ================= MODAL (FILE CONTROLLER USED HERE) =================
-
   openDetails(p: PurchaseHistory): void {
     this.selectedPurchase = p;
     this.isModalOpen = true;
 
-    // 🔥 FILE CONTROLLER ONLY HERE
     this.fileService.loadFiles(p.id);
   }
 
@@ -193,8 +204,6 @@ export class PurchaseHistoryComponent implements OnInit {
     this.tempFiles = [];
   }
 
-  // ================= FILE ACTIONS =================
-
   download(file: Attachment): void {
     this.fileService.download(file.id, file.fileName);
   }
@@ -203,7 +212,6 @@ export class PurchaseHistoryComponent implements OnInit {
     if (!this.selectedPurchase) return;
 
     const confirmDelete = confirm('ნამდვილად გინდა ამ ქვითრის წაშლა?');
-
     if (!confirmDelete) return;
 
     this.fileService.delete(file.id, this.selectedPurchase.id)
@@ -214,8 +222,6 @@ export class PurchaseHistoryComponent implements OnInit {
         error: (err: any) => console.error(err)
       });
   }
-
-  // ================= IMAGE =================
 
   getImage(file: Attachment): string {
     if (!file) return '';
@@ -231,7 +237,7 @@ export class PurchaseHistoryComponent implements OnInit {
     return !!file?.fileType?.includes('image');
   }
 
-  isFormModalOpen = false;
+  // ================= MODALS =================
 
   openCreateModal(): void {
     this.form.reset({
@@ -259,6 +265,4 @@ export class PurchaseHistoryComponent implements OnInit {
   closeFormModal(): void {
     this.isFormModalOpen = false;
   }
-
-
 }

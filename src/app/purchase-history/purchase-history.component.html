@@ -1,7 +1,7 @@
 <div class="container main-wrapper">
 
   <div class="header-section">
-    <h2 class="page-title">შესყიდვების მართვის პლატფორმა</h2>
+    <h2 class="page-title">შესყიდვები</h2>
     <button (click)="openCreateModal()" class="btn-add-main">
       <span class="icon">+</span>
       ახალი შესყიდვის დამატება
@@ -22,7 +22,7 @@
       <div class="h-cell text-end">მოქმედება</div>
     </div>
 
-    <div *ngFor="let p of purchases" class="row border history-item align-items-center">
+    <div *ngFor="let p of pagedPurchases" class="row border history-item align-items-center">
       <div class="col-content">
         <div class="id-box">#{{ p.id }}</div>
         <div class="text-bold">{{ getBuyerName(p.buyerId) }}</div>
@@ -35,7 +35,7 @@
             {{ p.checkIsThere ? '<i class="fa-solid fa-check" style="color: rgb(0, 252, 19);"></i>' : '<i
               class="fa-solid fa-x" style="color: rgb(252, 21, 0);"></i>' }}
           </span> -->
-          <span  [class.no]="!p.checkIsThere">
+          <span [class.no]="!p.checkIsThere">
             <i *ngIf="p.checkIsThere" class="fa-solid fa-check" style="color: rgb(0, 252, 19);"></i>
             <i *ngIf="!p.checkIsThere" class="fa-solid fa-x" style="color: rgb(252, 21, 0);"></i>
           </span>
@@ -118,7 +118,7 @@
             <input type="file" multiple (change)="onCreateFileSelect($event)" />
             ფაილების არჩევა
           </label>
-          <p class="file-count" *ngIf="tempFiles?.length">არჩეულია {{ tempFiles.length }} ფაილი</p>
+          <p class="file-count" *ngIf="tempFiles.length">არჩეულია {{ tempFiles.length }} ფაილი</p>
         </div>
 
         <div class="modal-actions">
@@ -184,7 +184,7 @@
             </div>
           </div>
         </div>
-        <p class="no-files" *ngIf="!files?.length">ფაილები არ მოიძებნა</p>
+        <p class="no-files" *ngIf="!files.length">ფაილები არ მოიძებნა</p>
       </div>
 
       <div class="modal-actions">
@@ -196,3 +196,16 @@
 </div>
 
 
+<div class="pagination-controls">
+  <button (click)="prevPage()" [disabled]="currentPage === 1">
+    Prev
+  </button>
+
+  <span>
+    {{ currentPage }} / {{ totalPages }}
+  </span>
+
+  <button (click)="nextPage()" [disabled]="currentPage === totalPages">
+    Next
+  </button>
+</div>

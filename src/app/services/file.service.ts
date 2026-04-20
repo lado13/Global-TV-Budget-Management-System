@@ -13,7 +13,7 @@ export class FileService {
   private _files$ = new BehaviorSubject<Attachment[]>([]);
   files$ = this._files$.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   loadFiles(purchaseId: number) {
     this.http.get<Attachment[]>(`${this.api}/purchase/${purchaseId}/files`)
@@ -31,31 +31,26 @@ export class FileService {
       .subscribe(() => this.loadFiles(purchaseId));
   }
 
-  // delete(fileId: number, purchaseId: number) {
-  //   this.http.delete(`${this.api}/file/${fileId}`)
-  //     .subscribe(() => this.loadFiles(purchaseId));
-  // }
-
   delete(fileId: number, purchaseId: number) {
-  return this.http.delete(
-    `http://192.168.1.102:1121/api/FileControllers/file/${fileId}`
-  );
-}
+    return this.http.delete(
+      `http://192.168.1.102:1121/api/FileControllers/file/${fileId}`
+    );
+  }
 
   download(fileId: number, fileName: string): void {
-  this.http.get(
-    `http://192.168.1.102:1121/api/FileControllers/file/download/${fileId}`,
-    { responseType: 'blob' }
-  ).subscribe(blob => {
+    this.http.get(
+      `http://192.168.1.102:1121/api/FileControllers/file/download/${fileId}`,
+      { responseType: 'blob' }
+    ).subscribe(blob => {
 
-    const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName; // 👉 პირდაპირ ინახავს ამ სახელით
-    a.click();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
 
-    window.URL.revokeObjectURL(url);
-  });
-}
+      window.URL.revokeObjectURL(url);
+    });
+  }
 }

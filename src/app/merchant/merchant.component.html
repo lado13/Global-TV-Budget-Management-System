@@ -1,5 +1,5 @@
 <div class="container main-wrapper">
-  <h2 class="page-title">სავაჭრო დაწესებულების მენეჯმენტი</h2>
+  <h2 class="page-title">სავაჭრო დაწესებულებები</h2>
 
   <div class="add-card shadow-sm">
     <div class="input-group">
@@ -18,7 +18,8 @@
           <th>ID</th>
           <th>მაღაზიები</th>
           <th>დამატების თარიღი</th>
-          <th>ბოლო განახლება</th> <th class="text-end">მოქმედება</th>
+          <th>ბოლო განახლება</th>
+          <th class="text-end">მოქმედება</th>
         </tr>
       </thead>
       <tbody>
@@ -26,10 +27,10 @@
         <tr class="budget-row">
           <td><span class="id-badge">#{{ m.id }}</span></td>
           <td><strong class="item-name text-light">{{ m.name }}</strong></td>
-          
+
           <td>
             <div class="timestamps text-white">
-       
+
               {{ m.createAt | date:'dd.MM.yyyy HH:mm' }}
             </div>
           </td>
@@ -37,12 +38,12 @@
           <td>
             <div class="timestamps">
               @if (m.updateAt && m.updateAt !== m.createAt) {
-                <span class="text-white">
-                 
-                  {{ m.updateAt | date:'dd.MM.yyyy HH:mm' }}
-                </span>
+              <span class="text-white">
+
+                {{ m.updateAt | date:'dd.MM.yyyy HH:mm' }}
+              </span>
               } @else {
-                <span class="text-muted" style="opacity: 0.5;">- არ განახლებულა -</span>
+              <span class="text-muted" style="opacity: 0.5;">- არ განახლებულა -</span>
               }
             </div>
           </td>

@@ -52,7 +52,7 @@ $border: #e2e8f0;
 .custom-table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #2f313d;
+    background-color: #121523;
 
     th {
         padding: 15px;
@@ -210,4 +210,143 @@ $border: #e2e8f0;
 .loader {
     text-align: center;
     padding: 40px;
+}
+
+
+/* =========================================
+   📱 MOBILE RESPONSIVE
+   ========================================= */
+
+@media (max-width: 991px) {
+
+
+    .page-title {
+        font-size: 20px;
+        text-align: center;
+    }
+
+    /* ➕ Add form */
+    .add-card .input-group {
+        flex-direction: column;
+    }
+
+    .add-card .btn-add {
+        width: 100%;
+        padding: 12px;
+    }
+
+    /* ❌ Hide table header */
+    .custom-table thead {
+        display: none;
+    }
+
+    /* 📄 Table → Card */
+    .custom-table,
+    .custom-table tbody,
+    .custom-table tr,
+    .custom-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .custom-table tr {
+        background: #2f313d;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid #ffffff20;
+    }
+
+    .custom-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 4px;
+        border: none;
+        font-size: 13px;
+        color: #e5e7eb;
+    }
+
+    /* 🏷️ Labels */
+    .custom-table td::before {
+        font-weight: 600;
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
+    .custom-table td:nth-child(1)::before {
+        content: "ID";
+    }
+
+    .custom-table td:nth-child(2)::before {
+        content: "მაღაზია";
+    }
+
+    .custom-table td:nth-child(3)::before {
+        content: "დამატების თარიღი";
+    }
+
+    .custom-table td:nth-child(4)::before {
+        content: "განახლება";
+    }
+
+    .custom-table td:nth-child(5)::before {
+        content: "მოქმედება";
+    }
+
+    /* 🎯 Actions center */
+    .actions {
+        justify-content: center !important;
+        margin-top: 10px;
+    }
+
+    .actions button {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #e5e7eb;
+    }
+
+    .btn-delete-icon {
+        background: #fee2e2;
+    }
+
+    /* 🧾 Modal responsive */
+    .modal-backdrop {
+        align-items: flex-start;
+        padding: 20px 10px;
+        overflow-y: auto;
+    }
+
+    .modal-box {
+        width: 100%;
+        max-width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-actions .btn-save,
+    .modal-actions .btn-cancel {
+        width: 100%;
+    }
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0; // top:0 left:0 right:0 bottom:0
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(5px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 15px;
+    z-index: 1000;
 }

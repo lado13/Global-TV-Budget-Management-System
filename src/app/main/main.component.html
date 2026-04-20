@@ -1,18 +1,65 @@
-<nav class="navbar">
+<!-- ☰ Burger button (მხოლოდ mobile-ზე გამოჩნდება) -->
+<button class="menu-toggle" (click)="toggleMenu()">☰</button>
+
+<nav class="navbar" [class.open]="isMenuOpen">
   <div class="nav-container">
-    <div class="nav-logo" routerLink="/"> 📺 Global TV ბიუჯეტის მენეჯმენტი</div>
-    
+    <div class="nav-logo" routerLink="/">
+      <p>
+        <span class="text-danger">📺 Global</span> TV
+      </p>
+    </div>
+
     <ul class="nav-links">
-      <!-- <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li> -->
-      <li><a routerLink="/Purchase" routerLinkActive="active">შესყიდვები და ისტორია</a></li>
-      <li><a routerLink="/enginner" routerLinkActive="active">ინჟინრები</a></li>
-      <li><a routerLink="/merchant" routerLinkActive="active">მაღაზიები</a></li>
-      <li><a routerLink="/product-type" routerLinkActive="active">პროდუქტის კატეგორიები</a></li>
-         <li><a routerLink="/budget" routerLinkActive="active">ბიუჯეტი</a></li>
+      <!-- <li>
+        <a class="link" routerLink="/Purchase" routerLinkActive="active" (click)="closeMenu()">
+          შესყიდვები და ისტორია
+        </a>
+      </li>
+
+      <li>
+        <a class="link" (click)="openAccessModal('/enginner')" routerLinkActive="active">ინჟინრები</a>
+      </li>
+
+      <li>
+        <a class="link" (click)="openAccessModal('/merchant')" routerLinkActive="active">მაღაზიები</a>
+      </li>
+
+      <li>
+        <a class="link" (click)="openAccessModal('/product-type')" routerLinkActive="active">პროდუქტის კატეგორიები</a>
+      </li>
+
+      <li>
+        <a class="link" (click)="openAccessModal('/budget')" routerLinkActive="active">ბიუჯეტი</a>
+      </li> -->
+
+      <li><a class="link" routerLink="/Purchase" routerLinkActive="active">შესყიდვები და ისტორია</a></li>
+      <li><a class="link" routerLink="/enginner" routerLinkActive="active">ინჟინრები</a></li>
+      <li><a class="link" routerLink="/merchant" routerLinkActive="active">მაღაზიები</a></li>
+      <li><a class="link" routerLink="/product-type" routerLinkActive="active">პროდუქტის კატეგორიები</a></li>
+      <li><a class="link" routerLink="/budget" routerLinkActive="active">ბიუჯეტი</a></li>
+
+
     </ul>
   </div>
 </nav>
 
 <div class="page-content">
   <router-outlet></router-outlet>
+</div>
+
+
+
+<div class="modal-backdrop" *ngIf="accessModal">
+  <div class="modal-box">
+
+    <h2>🔐 Access Required</h2>
+
+    <input type="password" [(ngModel)]="passwordInput" placeholder="შეიყვანე პაროლი" />
+
+    <div class="buttons">
+      <button (click)="closeAccessModal()">გაუქმება</button>
+      <button (click)="confirmAccess()">შესვლა</button>
+    </div>
+
+  </div>
 </div>

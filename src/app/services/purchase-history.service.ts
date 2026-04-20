@@ -1,6 +1,4 @@
 
-
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, tap } from 'rxjs';
@@ -16,12 +14,16 @@ export class PurchaseHistoryService {
   private _data$ = new BehaviorSubject<PurchaseHistory[]>([]);
   data$ = this._data$.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
+
 
   load() {
-    this.http.get<PurchaseHistory[]>(this.api)
+    const cacheBuster = `?t=${new Date().getTime()}`;
+
+    this.http.get<PurchaseHistory[]>(this.api + cacheBuster)
       .subscribe(res => this._data$.next(res));
   }
+
 
   add(model: PurchaseHistory) {
     return this.http.post(this.api, model).pipe(

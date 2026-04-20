@@ -33,7 +33,6 @@ export class ProductTypeService {
   }
 
   delete(id: number, name: string): Observable<any> {
-    // Note: Your Swagger shows DELETE accepts the full object in the body
     return this.http.delete(this.apiUrl, { body: { id, name } }).pipe(
       tap(() => this.getAll())
     );

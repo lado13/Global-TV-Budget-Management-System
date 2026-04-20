@@ -33,7 +33,6 @@ export class MonthBudgetService {
   }
 
   delete(budget: MonthBudget): Observable<any> {
-    // Swagger shows DELETE takes the full object in the body
     const options = { body: budget };
     return this.http.delete(this.apiUrl, options).pipe(
       tap(() => this.getAll())
