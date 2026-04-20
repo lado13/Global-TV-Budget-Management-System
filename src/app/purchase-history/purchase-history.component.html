@@ -1,0 +1,198 @@
+<div class="container main-wrapper">
+
+  <div class="header-section">
+    <h2 class="page-title">შესყიდვების მართვის პლატფორმა</h2>
+    <button (click)="openCreateModal()" class="btn-add-main">
+      <span class="icon">+</span>
+      ახალი შესყიდვის დამატება
+    </button>
+  </div>
+
+  <div class="card table-card">
+    <h3 class="card-title">შესყიდვების ისტორია</h3>
+
+    <div class="table-header">
+      <div class="h-cell">#</div>
+      <div class="h-cell">მყიდველი</div>
+      <div class="h-cell">მაღაზია</div>
+      <div class="h-cell">პროდუქტის ტიპი</div>
+      <div class="h-cell">თანხა</div>
+      <div class="h-cell">თარიღი</div>
+      <div class="h-cell">ჩეკი</div>
+      <div class="h-cell text-end">მოქმედება</div>
+    </div>
+
+    <div *ngFor="let p of purchases" class="row border history-item align-items-center">
+      <div class="col-content">
+        <div class="id-box">#{{ p.id }}</div>
+        <div class="text-bold">{{ getBuyerName(p.buyerId) }}</div>
+        <div>{{ getMerchantName(p.merchantId) }}</div>
+        <div><span class="type-badge">{{ getProductTypeName(p.porductTypeId) }}</span></div>
+        <div class="amount-text">{{ p.amount | currency:'₾ ' }}</div>
+        <div class="purchase-date">{{ p.purchaseDate | date:'dd.MM.yyyy' }}</div>
+        <div>
+          <!-- <span class="check-badge" [class.no]="!p.checkIsThere">
+            {{ p.checkIsThere ? '<i class="fa-solid fa-check" style="color: rgb(0, 252, 19);"></i>' : '<i
+              class="fa-solid fa-x" style="color: rgb(252, 21, 0);"></i>' }}
+          </span> -->
+          <span  [class.no]="!p.checkIsThere">
+            <i *ngIf="p.checkIsThere" class="fa-solid fa-check" style="color: rgb(0, 252, 19);"></i>
+            <i *ngIf="!p.checkIsThere" class="fa-solid fa-x" style="color: rgb(252, 21, 0);"></i>
+          </span>
+        </div>
+      </div>
+
+      <div class="col-actions">
+        <button class="btn-view" title="ნახვა" (click)="openDetails(p)">
+          <i class="fa-solid fa-eye" style="color: rgb(50, 57, 70);"></i>
+        </button>
+        <button class="btn-edit" title="რედაქტირება" (click)="edit(p)">
+          <i class="fa-solid fa-pen-to-square" style="color: rgb(63, 79, 107);"></i>
+        </button>
+        <button class="btn-delete" title="წაშლა" (click)="delete(p)">
+          <i class="fa-solid fa-trash-can" style="color: rgb(233, 55, 31);"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isFormModalOpen" (click)="closeFormModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ form.get('id')?.value ? 'რედაქტირება' : 'ახალი შესყიდვა' }}</h3>
+        <button class="close-x" (click)="closeFormModal()">✕</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="modern-form">
+        <div class="form-grid">
+          <div class="field">
+            <label>თარიღი</label>
+            <input type="date" formControlName="purchaseDate" />
+          </div>
+
+          <div class="field">
+            <label>თანხა</label>
+            <input type="number" formControlName="amount" placeholder="0.00" />
+          </div>
+
+          <div class="field">
+            <label>ინჟინერი</label>
+            <select formControlName="buyerId">
+              <option [ngValue]="null">აირჩიე ინჟინერი</option>
+              <option *ngFor="let e of engineers" [value]="e.id">{{ e.name || e.fullName }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>მაღაზია</label>
+            <select formControlName="merchantId">
+              <option [ngValue]="null">აირჩიე მაღაზია</option>
+              <option *ngFor="let m of merchants" [value]="m.id">{{ m.name }}</option>
+            </select>
+          </div>
+
+          <div class="field full-width">
+            <label>პროდუქტის ტიპი</label>
+            <select formControlName="porductTypeId">
+              <option [ngValue]="null">აირჩიე პროდუქტის ტიპი</option>
+              <option *ngFor="let p of productTypes" [value]="p.id">{{ p.name }}</option>
+            </select>
+          </div>
+
+          <div class="field full-width">
+            <label>კომენტარი</label>
+            <textarea formControlName="additionalComment" placeholder="დაამატეთ შენიშვნა..."></textarea>
+          </div>
+        </div>
+
+        <div class="checkbox-field">
+          <input class="checkbox-slider" type="checkbox" formControlName="checkIsThere" id="checkSlider" />
+          <label for="checkSlider" class="slider-label">
+            {{ form.get('checkIsThere')?.value ? 'ჩეკი არის' : 'ჩეკი არ არის' }}
+          </label>
+        </div>
+
+        <div class="file-upload-section">
+          <h4>📁 ატვირთე ჩეკის სურათი</h4>
+          <label class="custom-file-upload">
+            <input type="file" multiple (change)="onCreateFileSelect($event)" />
+            ფაილების არჩევა
+          </label>
+          <p class="file-count" *ngIf="tempFiles?.length">არჩეულია {{ tempFiles.length }} ფაილი</p>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeFormModal()">გაუქმება</button>
+          <button type="submit" class="btn-save" [disabled]="form.invalid">შენახვა</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+    <div class="modal-box view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>შესყიდვის დეტალები</h3>
+        <button class="close-x" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">ID</span>
+          <span class="value">#{{ selectedPurchase?.id }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">მყიდველი</span>
+          <span class="value">{{ getBuyerName(selectedPurchase?.buyerId!) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">მაღაზია</span>
+          <span class="value">{{ getMerchantName(selectedPurchase?.merchantId!) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">ტიპი</span>
+          <span class="value">{{ getProductTypeName(selectedPurchase?.porductTypeId!) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">თანხა</span>
+          <span class="value price">{{ selectedPurchase?.amount | currency:'₾ ' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">თარიღი</span>
+          <span class="value">{{ selectedPurchase?.purchaseDate | date:'dd.MM.yyyy' }}</span>
+        </div>
+        <div class="info-item full-width" *ngIf="selectedPurchase?.additionalComment">
+          <span class="label">კომენტარი</span>
+          <span class="value note">{{ selectedPurchase?.additionalComment }}</span>
+        </div>
+      </div>
+
+      <hr class="modal-divider" />
+
+      <h4>მიბმული ფაილები</h4>
+      <div class="files-container">
+        <div class="file-card" *ngFor="let file of files || []">
+          <div class="file-preview">
+            <img *ngIf="file?.fileType?.includes('image')" [src]="getImage(file)" />
+            <div *ngIf="!file?.fileType?.includes('image')" class="file-icon">📄</div>
+          </div>
+          <div class="file-info">
+            <span class="file-name">{{ file.fileName }}</span>
+            <div class="file-btns">
+              <button class="btn-mini-download" (click)="download(file)">Download</button>
+              <button class="btn-mini-delete" (click)="deleteFile(file)">Delete</button>
+            </div>
+          </div>
+        </div>
+        <p class="no-files" *ngIf="!files?.length">ფაილები არ მოიძებნა</p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-save" (click)="closeModal()">დახურვა</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+

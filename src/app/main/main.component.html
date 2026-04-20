@@ -1,0 +1,18 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo" routerLink="/"> 📺 Global TV ბიუჯეტის მენეჯმენტი</div>
+    
+    <ul class="nav-links">
+      <!-- <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li> -->
+      <li><a routerLink="/Purchase" routerLinkActive="active">შესყიდვები და ისტორია</a></li>
+      <li><a routerLink="/enginner" routerLinkActive="active">ინჟინრები</a></li>
+      <li><a routerLink="/merchant" routerLinkActive="active">მაღაზიები</a></li>
+      <li><a routerLink="/product-type" routerLinkActive="active">პროდუქტის კატეგორიები</a></li>
+         <li><a routerLink="/budget" routerLinkActive="active">ბიუჯეტი</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-content">
+  <router-outlet></router-outlet>
+</div>

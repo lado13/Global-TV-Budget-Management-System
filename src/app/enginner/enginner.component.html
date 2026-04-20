@@ -1,0 +1,93 @@
+<div class="container main-wrapper">
+  <h2 class="page-title">ინჟინერების მენეჯმენტი</h2>
+
+  <div class="add-card shadow-sm">
+    <div class="input-group">
+      <input #newName type="text" placeholder="ჩაწერე ინჟინრის სახელი და გვარი...">
+      <button class="btn-add" (click)="addNew(newName)">
+        <span class="icon">+</span> დამატება
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container card shadow">
+    @if (engineers$ | async; as list) {
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th class="text-dark">ID</th>
+          <th class="text-dark">სახელი</th>
+          <th class="text-dark">დამატების თარიღი</th>
+          <th class="text-dark">ბოლო განახლება</th>
+          <th class="text-end text-dark">მოქმედება</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (eng of list; track eng.id) {
+        <tr class="budget-row">
+          <td><span class="id-badge">#{{ eng.id }}</span></td>
+          <td><strong class="eng-name">{{ eng.name }}</strong></td>
+
+          <td>
+            <div class="timestamps text-white">
+
+              {{ eng.createAt | date:'dd.MM.yyyy HH:mm' }}
+            </div>
+          </td>
+
+          <td>
+            <div class="timestamps">
+              @if (eng.updateAt && eng.updateAt !== eng.createAt) {
+              <span class="text-white">
+
+                {{ eng.updateAt | date:'dd.MM.yyyy HH:mm' }}
+              </span>
+              } @else {
+              <span class="text-muted" style="opacity: 0.5;">- არ განახლებულა -</span>
+              }
+            </div>
+          </td>
+
+          <td class="actions">
+            <button class="btn-edit-icon" (click)="edit(eng)" title="რედაქტირება">
+              <i class="fa-solid fa-pen-to-square" style="color: rgb(159, 160, 170);"></i>
+            </button>
+            <button class="btn-delete-icon" title="წაშლა" (click)="remove(eng)">
+              <i class="fa-regular fa-trash-can" style="color: rgb(252, 21, 0);"></i>
+            </button>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="5" class="no-data">მონაცემები არ მოიძებნა.</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    } @else {
+    <div class="loader">
+      <div class="spinner"></div>
+      <p>უკავშირდება სერვერს...</p>
+    </div>
+    }
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>ინჟინრის რედაქტირება</h3>
+        <button class="close-x" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="field">
+        <label>სახელი და გვარი</label>
+        <input #updatedName type="text" [value]="selectedEngineer?.name" placeholder="შეიყვანეთ სახელი">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
+        <button class="btn-save" (click)="saveEdit(updatedName.value)">შენახვა</button>
+      </div>
+    </div>
+  </div>
+</div>

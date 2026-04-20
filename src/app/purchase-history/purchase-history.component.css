@@ -1,0 +1,523 @@
+@charset "UTF-8";
+/* =========================================
+   1. ცვლადები და მიქსინები
+   ========================================= */
+/* =========================================
+   2. Layout & Header
+   ========================================= */
+.main-wrapper {
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* მთავარი დამატების ღილაკი */
+.btn-add-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-add-main .icon {
+  background: rgba(255, 255, 255, 0.2);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.btn-add-main:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px -5px rgba(37, 99, 235, 0.5);
+  filter: brightness(1.1);
+}
+.btn-add-main:hover .icon {
+  transform: rotate(90deg);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* =========================================
+   3. ცხრილის სტილები
+   ========================================= */
+.table-card {
+  background-color: #2f313d;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #cdcdcd;
+}
+.table-card .card-title {
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 60px 180px 150px 160px 120px 130px 100px 1fr;
+  padding: 15px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #cdcdcd;
+  margin-bottom: 12px;
+}
+.table-header .h-cell {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgb(0, 0, 0);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.row.border {
+  display: grid !important;
+  grid-template-columns: 1fr auto;
+  padding: 12px 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.row.border .col-content {
+  display: grid;
+  grid-template-columns: 60px 180px 150px 160px 120px 130px 100px;
+  align-items: center;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+/* ბეიჯები */
+.id-box {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 800;
+  padding: 6px;
+  border-radius: 8px;
+  width: 45px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.type-badge {
+  background: #f1f5f9;
+  color: #000000;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.check-badge {
+  background: #ecfdf5;
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+}
+.check-badge.no {
+  background: #fff1f2;
+  color: #f43f5e;
+}
+
+.amount-text {
+  font-weight: 800;
+  color: rgb(122, 255, 155);
+}
+
+/* მოქმედების ღილაკები ცხრილში */
+.col-actions {
+  display: flex;
+  gap: 8px;
+  padding-right: 15px;
+}
+.col-actions button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 16px;
+}
+.col-actions button:hover {
+  transform: translateY(-2px);
+}
+.col-actions .btn-view {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.col-actions .btn-view:hover {
+  background: #2563eb;
+  color: white;
+}
+.col-actions .btn-edit {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.col-actions .btn-edit:hover {
+  background: #64748b;
+  color: white;
+}
+.col-actions .btn-delete {
+  background: #fff1f2;
+  color: #f43f5e;
+}
+.col-actions .btn-delete:hover {
+  background: #f43f5e;
+  color: white;
+}
+
+/* =========================================
+   4. მოდალები და ფორმები
+   ========================================= */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  padding: 35px;
+  border-radius: 24px;
+  width: 25%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalIn 0.3s ease-out;
+}
+.modal-box .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.modal-box .modal-header h3 {
+  margin: 0;
+  font-weight: 800;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.form-grid .full-width {
+  grid-column: span 2;
+}
+
+.purchase-date {
+  color: #ffffff;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+.field input,
+.field select,
+.field textarea {
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+.field textarea {
+  height: 80px;
+  resize: none;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+.checkbox-field .slider-label {
+  cursor: pointer;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* სლაიდერი */
+.checkbox-slider {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  width: 48px;
+  height: 24px;
+  background: #f43f5e;
+  border-radius: 50px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.checkbox-slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.checkbox-slider:checked {
+  background: #10b981;
+}
+.checkbox-slider:checked::before {
+  transform: translateX(24px);
+}
+
+/* ფაილების ატვირთვის სექცია */
+.file-upload-section {
+  border: 2px dashed #e2e8f0;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 25px;
+}
+.file-upload-section h4 {
+  font-size: 13px;
+  margin-bottom: 12px;
+  color: #64748b;
+}
+.file-upload-section .custom-file-upload {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.file-upload-section .custom-file-upload input {
+  display: none;
+}
+.file-upload-section .file-count {
+  color: #10b981;
+  font-size: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* მოდალის ღილაკები */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.modal-actions .btn-save {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-actions .btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+.modal-actions .btn-save:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+.modal-actions .btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.modal-actions .btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+/* View Modal */
+.view-modal {
+  max-width: 600px !important;
+}
+.view-modal .info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 20px 0;
+}
+.view-modal .info-item {
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+.view-modal .info-item .label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.view-modal .info-item .value {
+  font-size: 15px;
+  font-weight: 600;
+}
+.view-modal .info-item .value.price {
+  color: #2563eb;
+  font-size: 18px;
+}
+.view-modal .info-item.full-width {
+  grid-column: span 2;
+}
+
+/* ფაილების ბარათები */
+.files-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.file-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.file-card .file-preview {
+  height: 90px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.file-card .file-preview img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.file-card .file-preview .file-icon {
+  font-size: 24px;
+}
+.file-card .file-info {
+  padding: 10px;
+}
+.file-card .file-info .file-name {
+  font-size: 11px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-card .file-btns {
+  display: flex;
+  gap: 4px;
+}
+.file-card .file-btns button {
+  flex: 1;
+  font-size: 9px;
+  padding: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.file-card .file-btns .btn-mini-download {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.file-card .file-btns .btn-mini-delete {
+  background: #fff1f2;
+  color: #f43f5e;
+}
+
+/* დამხმარე */
+.close-x {
+  border: none;
+  background: #f1f5f9;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.close-x:hover {
+  background: #fee2e2;
+  color: #f43f5e;
+  transform: rotate(90deg);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.text-end {
+  text-align: right;
+}
+
+.history-item {
+  border: 1px solid #cdcdcd !important;
+  margin-top: 10px;
+}/*# sourceMappingURL=purchase-history.component.css.map */
