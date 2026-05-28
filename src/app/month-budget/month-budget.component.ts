@@ -16,19 +16,21 @@ export class MonthBudgetComponent implements OnInit {
   private service = inject(MonthBudgetService);
 
   // Stream with sorting logic: show latest by date or ID
-  budgets$ = this.service.budgets$.pipe(
-    map(data => data ? [...data].sort((a, b) => {
-      // Sort by createAt if available, otherwise fallback to id
-      const dateA = a.createAt ? new Date(a.createAt).getTime() : a.id || 0;
-      const dateB = b.createAt ? new Date(b.createAt).getTime() : b.id || 0;
-      return dateB - dateA;
-    }) : [])
-  );
+ budgets$ = this.service.budgets$.pipe(
+  map(data =>
+    [...data].sort((a, b) => {
+      const aValue = a.year * 12 + a.month;
+      const bValue = b.year * 12 + b.month;
+      return bValue - aValue;
+    })
+  )
+);
 
   newBudget: MonthBudget = {
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
     budgetAmount: 0,
+    remainingBudget: 0,
     remainingFromPreviousMonth: 0
   };
 
@@ -36,7 +38,7 @@ export class MonthBudgetComponent implements OnInit {
   selectedBudget: MonthBudget | null = null;
 
   ngOnInit(): void {
-    this.service.getAll();
+    this.service.load();
   }
 
   saveBudget() {
@@ -49,6 +51,25 @@ export class MonthBudgetComponent implements OnInit {
       },
       error: (err) => console.error('Error:', err)
     });
+  }
+
+  getMonthName(month: number): string {
+    const months = [
+      'იანვარი',
+      'თებერვალი',
+      'მარტი',
+      'აპრილი',
+      'მაისი',
+      'ივნისი',
+      'ივლისი',
+      'აგვისტო',
+      'სექტემბერი',
+      'ოქტომბერი',
+      'ნოემბერი',
+      'დეკემბერი'
+    ];
+
+    return months[month - 1] || '';
   }
 
   onEdit(budget: MonthBudget) {

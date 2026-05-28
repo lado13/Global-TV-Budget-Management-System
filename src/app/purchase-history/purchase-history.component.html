@@ -1,18 +1,33 @@
 <div class="container main-wrapper">
 
   <div class="header-section">
-    <h2 class="page-title">შესყიდვები</h2>
+
+    <div class="search-bar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+
+        <input type="text" placeholder="მოძებნე სახელით ან თანხით..." [(ngModel)]="searchTerm"
+          (input)="updatePagination()" />
+
+        <button *ngIf="searchTerm" class="clear-btn" (click)="searchTerm=''; updatePagination()">
+          ✖
+        </button>
+      </div>
+    </div>
+
+    <!-- <h2 class="page-title">შესყიდვები</h2> -->
     <button (click)="openCreateModal()" class="btn-add-main">
       <span class="icon">+</span>
       ახალი შესყიდვის დამატება
     </button>
+
   </div>
 
   <div class="card table-card">
-    <h3 class="card-title">შესყიდვების ისტორია</h3>
+    <p class="card-title">შესყიდვების ისტორია</p>
 
     <div class="table-header">
-      <div class="h-cell">#</div>
+      <div class="h-cell">#ID</div>
       <div class="h-cell">მყიდველი</div>
       <div class="h-cell">მაღაზია</div>
       <div class="h-cell">პროდუქტის ტიპი</div>
@@ -24,33 +39,31 @@
 
     <div *ngFor="let p of pagedPurchases" class="row border history-item align-items-center">
       <div class="col-content">
-        <div class="id-box">#{{ p.id }}</div>
-        <div class="text-bold">{{ getBuyerName(p.buyerId) }}</div>
-        <div>{{ getMerchantName(p.merchantId) }}</div>
-        <div><span class="type-badge">{{ getProductTypeName(p.porductTypeId) }}</span></div>
-        <div class="amount-text">{{ p.amount | currency:'₾ ' }}</div>
-        <div class="purchase-date">{{ p.purchaseDate | date:'dd.MM.yyyy' }}</div>
+        <div class="id-box history-value">#{{ p.id }}</div>
+        <div class="text-bold history-value">{{ getBuyerName(p.buyerId) }}</div>
+        <div class="history-value">{{ getMerchantName(p.merchantId) }}</div>
+        <div><span class="type-badge history-value">{{ getProductTypeName(p.porductTypeId) }}</span></div>
+        <div class="amount-text history-value">{{ p.amount | currency:'₾ ' }}</div>
+        <div class="purchase-date history-value">{{ p.purchaseDate | date:'dd.MM.yyyy' }}</div>
         <div>
-          <!-- <span class="check-badge" [class.no]="!p.checkIsThere">
-            {{ p.checkIsThere ? '<i class="fa-solid fa-check" style="color: rgb(0, 252, 19);"></i>' : '<i
-              class="fa-solid fa-x" style="color: rgb(252, 21, 0);"></i>' }}
-          </span> -->
+
           <span [class.no]="!p.checkIsThere">
-            <i *ngIf="p.checkIsThere" class="fa-solid fa-check" style="color: rgb(0, 252, 19);"></i>
-            <i *ngIf="!p.checkIsThere" class="fa-solid fa-x" style="color: rgb(252, 21, 0);"></i>
+            <i *ngIf="p.checkIsThere" class="fa-solid fa-check check" style="color: rgb(0, 252, 19);"></i>
+            <i *ngIf="!p.checkIsThere" class="fa-solid fa-x check" style="color: rgb(252, 21, 0);"></i>
           </span>
         </div>
       </div>
 
       <div class="col-actions">
         <button class="btn-view" title="ნახვა" (click)="openDetails(p)">
-          <i class="fa-solid fa-eye" style="color: rgb(50, 57, 70);"></i>
+          <i class="fa-solid fa-eye" style="color: #aaaaaa;"></i>
+        </button>
+
+        <button class="btn-delete" title="წაშლა" (click)="delete(p)">
+          <i class="fa-solid fa-trash-can" style="color: #e9371f;"></i>
         </button>
         <button class="btn-edit" title="რედაქტირება" (click)="edit(p)">
-          <i class="fa-solid fa-pen-to-square" style="color: rgb(63, 79, 107);"></i>
-        </button>
-        <button class="btn-delete" title="წაშლა" (click)="delete(p)">
-          <i class="fa-solid fa-trash-can" style="color: rgb(233, 55, 31);"></i>
+          <i class="fa-solid fa-pen-to-square" style="color: #aaaaaa;"></i>
         </button>
       </div>
     </div>
@@ -67,17 +80,17 @@
         <div class="form-grid">
           <div class="field">
             <label>თარიღი</label>
-            <input type="date" formControlName="purchaseDate" />
+            <input class="modal-field" type="date" formControlName="purchaseDate" />
           </div>
 
           <div class="field">
             <label>თანხა</label>
-            <input type="number" formControlName="amount" placeholder="0.00" />
+            <input class="modal-field" type="number" formControlName="amount" placeholder="0.00" />
           </div>
 
           <div class="field">
             <label>ინჟინერი</label>
-            <select formControlName="buyerId">
+            <select class="modal-field" formControlName="buyerId">
               <option [ngValue]="null">აირჩიე ინჟინერი</option>
               <option *ngFor="let e of engineers" [value]="e.id">{{ e.name || e.fullName }}</option>
             </select>
@@ -85,7 +98,7 @@
 
           <div class="field">
             <label>მაღაზია</label>
-            <select formControlName="merchantId">
+            <select class="modal-field" formControlName="merchantId">
               <option [ngValue]="null">აირჩიე მაღაზია</option>
               <option *ngFor="let m of merchants" [value]="m.id">{{ m.name }}</option>
             </select>
@@ -93,7 +106,7 @@
 
           <div class="field full-width">
             <label>პროდუქტის ტიპი</label>
-            <select formControlName="porductTypeId">
+            <select class="modal-field" formControlName="porductTypeId">
               <option [ngValue]="null">აირჩიე პროდუქტის ტიპი</option>
               <option *ngFor="let p of productTypes" [value]="p.id">{{ p.name }}</option>
             </select>
@@ -101,7 +114,8 @@
 
           <div class="field full-width">
             <label>კომენტარი</label>
-            <textarea formControlName="additionalComment" placeholder="დაამატეთ შენიშვნა..."></textarea>
+            <textarea class="modal-field" formControlName="additionalComment"
+              placeholder="დაამატეთ შენიშვნა..."></textarea>
           </div>
         </div>
 
@@ -115,7 +129,7 @@
         <div class="file-upload-section">
           <h4>📁 ატვირთე ჩეკის სურათი</h4>
           <label class="custom-file-upload">
-            <input type="file" multiple (change)="onCreateFileSelect($event)" />
+            <input class="modal-field" type="file" multiple (change)="onCreateFileSelect($event)" />
             ფაილების არჩევა
           </label>
           <p class="file-count" *ngIf="tempFiles.length">არჩეულია {{ tempFiles.length }} ფაილი</p>
@@ -123,7 +137,12 @@
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="closeFormModal()">გაუქმება</button>
-          <button type="submit" class="btn-save" [disabled]="form.invalid">შენახვა</button>
+  
+
+          <button type="submit" class="btn-save" [disabled]="form.invalid || isSaving">
+
+            {{ isSaving ? 'იტვირთება...' : 'შენახვა' }}
+          </button>
         </div>
       </form>
     </div>
@@ -184,7 +203,7 @@
             </div>
           </div>
         </div>
-        <p class="no-files" *ngIf="!files.length">ფაილები არ მოიძებნა</p>
+        <p class="no-files" *ngIf="!files.length">ფაილი იტვირთება...</p>
       </div>
 
       <div class="modal-actions">
@@ -198,7 +217,7 @@
 
 <div class="pagination-controls">
   <button (click)="prevPage()" [disabled]="currentPage === 1">
-    Prev
+    <i class="fa-solid fa-arrow-left" style="color: rgb(66, 69, 90);"></i>
   </button>
 
   <span>
@@ -206,6 +225,6 @@
   </span>
 
   <button (click)="nextPage()" [disabled]="currentPage === totalPages">
-    Next
+    <i class="fa-solid fa-arrow-right" style="color: rgb(66, 69, 90);"></i>
   </button>
 </div>

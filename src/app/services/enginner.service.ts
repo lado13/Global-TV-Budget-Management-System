@@ -8,40 +8,46 @@ import { Enginner } from '../model/enginner';
   providedIn: 'root'
 })
 export class EnginnerService {
+
   private http = inject(HttpClient);
   private apiUrl = environment.EnginnerApi;
 
-  // Real-time State
-  private dataSubject = new BehaviorSubject<Enginner[]>([]);
-  public engineers$ = this.dataSubject.asObservable();
+  // 🔥 STATE STORE
+  private _data$ = new BehaviorSubject<Enginner[]>([]);
+  engineers$ = this._data$.asObservable();
 
-  // --- GET ALL ---
-  getAll(): void {
-    this.http.get<Enginner[]>(this.apiUrl).subscribe(data => {
-      this.dataSubject.next(data);
-    });
+  constructor() {
+    this.load(); // optional auto-load
   }
 
-  // --- POST (Create) ---
+  // --- LOAD ALL ---
+  load(): void {
+    const cacheBuster = `?t=${new Date().getTime()}`;
+
+    this.http.get<Enginner[]>(this.apiUrl + cacheBuster)
+      .subscribe(data => this._data$.next(data));
+  }
+
+  // --- CREATE ---
   create(name: string): Observable<Enginner> {
     return this.http.post<Enginner>(this.apiUrl, { id: 0, name }).pipe(
-      tap(() => this.getAll()) // Refresh list after adding
+      tap(() => this.load())
     );
   }
 
-  // --- PUT (Update) ---
+  // --- UPDATE ---
   update(id: number, name: string): Observable<any> {
     return this.http.put(this.apiUrl, { id, name }).pipe(
-      tap(() => this.getAll()) // Refresh list after update
+      tap(() => this.load())
     );
   }
 
   // --- DELETE ---
   delete(id: number, name: string): Observable<any> {
-    // Note: Your Swagger shows DELETE accepts a body {id, name}
-    const options = { body: { id, name } };
-    return this.http.delete(this.apiUrl, options).pipe(
-      tap(() => this.getAll()) // Refresh list after delete
+    return this.http.delete(this.apiUrl, {
+      body: { id, name }
+    }).pipe(
+      tap(() => this.load())
     );
   }
 
@@ -50,10 +56,8 @@ export class EnginnerService {
     return this.http.get<Enginner>(`${this.apiUrl}/${id}`);
   }
 
-  // --- CHECK EXISTS ---
+  // --- EXISTS ---
   exists(id: number): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/exists/${id}`);
   }
-
-
 }

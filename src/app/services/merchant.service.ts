@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, tap } from 'rxjs';
 import { environment } from '../../environment/environment';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Merchant } from '../model/merchant';
 
 @Injectable({
@@ -9,34 +9,38 @@ import { Merchant } from '../model/merchant';
 })
 export class MerchantService {
 
-  private http = inject(HttpClient);
   private apiUrl = environment.MerchantApi;
 
-  private merchantSubject = new BehaviorSubject<Merchant[]>([]);
-  public merchants$ = this.merchantSubject.asObservable();
+  private _data$ = new BehaviorSubject<Merchant[]>([]);
+  merchants$ = this._data$.asObservable();
 
-  getAll(): void {
-    this.http.get<Merchant[]>(this.apiUrl).subscribe(data => {
-      this.merchantSubject.next(data);
-    });
+  constructor(private http: HttpClient) { }
+
+  // 🔥 SAME PRINCIPLE AS PURCHASE HISTORY
+  load() {
+    const cacheBuster = `?t=${new Date().getTime()}`;
+
+    this.http.get<Merchant[]>(this.apiUrl + cacheBuster)
+      .subscribe(res => this._data$.next(res));
   }
 
-  create(name: string): Observable<Merchant> {
-    return this.http.post<Merchant>(this.apiUrl, { id: 0, name }).pipe(
-      tap(() => this.getAll())
+  create(name: string) {
+    return this.http.post(this.apiUrl, { id: 0, name }).pipe(
+      tap(() => this.load())
     );
   }
 
-  update(id: number, name: string): Observable<any> {
+  update(id: number, name: string) {
     return this.http.put(this.apiUrl, { id, name }).pipe(
-      tap(() => this.getAll())
+      tap(() => this.load())
     );
   }
 
-  delete(id: number, name: string): Observable<any> {
-    const options = { body: { id, name } };
-    return this.http.delete(this.apiUrl, options).pipe(
-      tap(() => this.getAll())
+  delete(id: number, name?: string) {
+    return this.http.request('delete', this.apiUrl, {
+      body: { id, name }
+    }).pipe(
+      tap(() => this.load())
     );
   }
 }

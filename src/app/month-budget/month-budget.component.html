@@ -27,32 +27,53 @@
           <th>პერიოდი / შექმნილი</th>
           <th>ბიუჯეტი</th>
           <th>გადმოყოლილი</th>
+          <th>დარჩენილი თანხა</th>
           <th>ჯამში</th>
+
           <th class="text-end">მოქმედება</th>
         </tr>
       </thead>
       <tbody>
-        @for (b of list; track b.id) {
+        @for (b of budgets$ | async; track b.id) {
         <tr class="budget-row">
           <td>
             <div class="period-info">
-              <span class="period-badge">{{ b.month }}/{{ b.year }}</span>
-              <div class="timestamps">
+              <span class="period-badge">{{ getMonthName(b.month) }} • {{ b.createAt | date:'dd.MM.yyyy
+                HH:mm' }}</span>
+
+              <!-- <div class="timestamps">
                 <small class="text-light" *ngIf="b.createAt">
-                  <i class="fa-solid fa-clock-rotate-left"></i> {{ b.createAt | date:'dd.MM.yyyy HH:mm' }}
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                  {{ getMonthName(b.month) }} {{ b.year }} • {{ b.createAt | date:'dd.MM.yyyy HH:mm' }}
                 </small>
-              </div>
+              </div> -->
             </div>
           </td>
-          <td class="amount text-light">{{ b.budgetAmount | currency:'₾ ' }}</td>
-          <td class="text-light">{{ b.remainingFromPreviousMonth | currency:'₾ ' }}</td>
-          <td>
-            <strong class="total-amount">{{ b.budgetAmount + b.remainingFromPreviousMonth | currency:'₾ ' }}</strong>
+
+          <td class="amount text-light">
+            {{ b.budgetAmount | currency:'₾ ' }}
           </td>
+
+          <td class="text-light">
+            {{ b.remainingFromPreviousMonth | currency:'₾ ' }}
+          </td>
+
+          <!-- 🔥 remainingBudget -->
+          <td class="text-light text-decoration-underline">
+            {{ b.remainingBudget | currency:'₾ ' }}
+          </td>
+
+          <td>
+            <strong class="total-amount">
+              {{ b.budgetAmount + b.remainingFromPreviousMonth | currency:'₾ ' }}
+            </strong>
+          </td>
+
           <td class="actions">
             <button class="btn-edit-icon" (click)="onEdit(b)">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
+
             <button class="btn-delete-icon" (click)="removeBudget(b)">
               <i class="fa-solid fa-trash-can"></i>
             </button>
@@ -60,7 +81,7 @@
         </tr>
         } @empty {
         <tr>
-          <td colspan="5" class="no-data">ბიუჯეტის ჩანაწერები არ მოიძებნა.</td>
+          <td colspan="6" class="no-data">ბიუჯეტის ჩანაწერები არ მოიძებნა.</td>
         </tr>
         }
       </tbody>

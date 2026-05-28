@@ -25,7 +25,7 @@ export class ProductTypeComponent implements OnInit {
 
   ngOnInit(): void {
     // Initial fetch of product types
-    this.service.getAll();
+    this.service.load();
   }
 
   // Handle adding a new product type

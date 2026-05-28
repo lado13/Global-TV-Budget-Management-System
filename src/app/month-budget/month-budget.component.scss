@@ -115,6 +115,7 @@ $border: #e2e8f0;
         display: flex;
         justify-content: flex-end;
         gap: 15px;
+        height: 100px;
 
         button {
             border: none;
@@ -410,10 +411,15 @@ $border: #e2e8f0;
     }
 
     .custom-table td:nth-child(4)::before {
+        content: "დარჩენილი თანხა";
+    }
+
+
+    .custom-table td:nth-child(5)::before {
         content: "ჯამი";
     }
 
-    .custom-table td:nth-child(5)::before {
+    .custom-table td:nth-child(6)::before {
         content: "მოქმედება";
     }
 
@@ -425,6 +431,7 @@ $border: #e2e8f0;
         margin-top: 10px;
         gap: 12px;
     }
+    
 
     .actions button {
         width: 42px;

@@ -32,11 +32,11 @@
         <a class="link" (click)="openAccessModal('/budget')" routerLinkActive="active">ბიუჯეტი</a>
       </li> -->
 
-      <li><a class="link" routerLink="/Purchase" routerLinkActive="active">შესყიდვები და ისტორია</a></li>
-      <li><a class="link" routerLink="/enginner" routerLinkActive="active">ინჟინრები</a></li>
-      <li><a class="link" routerLink="/merchant" routerLinkActive="active">მაღაზიები</a></li>
-      <li><a class="link" routerLink="/product-type" routerLinkActive="active">პროდუქტის კატეგორიები</a></li>
-      <li><a class="link" routerLink="/budget" routerLinkActive="active">ბიუჯეტი</a></li>
+      <li><a class="link" (click)="closeMenu()" routerLink="/Purchase" routerLinkActive="active">შესყიდვები და ისტორია</a></li>
+      <li><a class="link" (click)="closeMenu()" routerLink="/enginner" routerLinkActive="active">ინჟინრები</a></li>
+      <li><a class="link" (click)="closeMenu()" routerLink="/merchant" routerLinkActive="active">მაღაზიები</a></li>
+      <li><a class="link" (click)="closeMenu()" routerLink="/product-type" routerLinkActive="active">პროდუქტის კატეგორიები</a></li>
+      <li><a class="link" (click)="closeMenu()" routerLink="/budget" routerLinkActive="active">ბიუჯეტი</a></li>
 
 
     </ul>

@@ -65,7 +65,6 @@
   transform: translateY(-1px);
 }
 
-/* ცხრილის სტილი */
 .custom-table {
   width: 100%;
   border-collapse: collapse;
@@ -99,6 +98,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 15px;
+  height: 100px;
 }
 .custom-table .actions button {
   border: none;
@@ -298,8 +298,8 @@
     text-align: center;
   }
   /* =========================
-     ➕ INPUT STACK
-     ========================= */
+   ➕ INPUT STACK
+   ========================= */
   .add-card .budget-inputs {
     flex-direction: column;
     align-items: stretch;
@@ -311,8 +311,8 @@
     width: 100%;
   }
   /* =========================
-     📊 TABLE → CARD VIEW
-     ========================= */
+   📊 TABLE → CARD VIEW
+   ========================= */
   .custom-table thead {
     display: none;
   }
@@ -355,14 +355,17 @@
     content: "გადმოყოლილი";
   }
   .custom-table td:nth-child(4)::before {
-    content: "ჯამი";
+    content: "დარჩენილი თანხა";
   }
   .custom-table td:nth-child(5)::before {
+    content: "ჯამი";
+  }
+  .custom-table td:nth-child(6)::before {
     content: "მოქმედება";
   }
   /* =========================
-     🎯 ACTIONS
-     ========================= */
+   🎯 ACTIONS
+   ========================= */
   .actions {
     justify-content: center !important;
     margin-top: 10px;
@@ -381,8 +384,8 @@
     background: #fee2e2;
   }
   /* =========================
-     🧾 MODAL FIX
-     ========================= */
+   🧾 MODAL FIX
+   ========================= */
   .modal-backdrop {
     align-items: flex-start;
     padding: 15px;

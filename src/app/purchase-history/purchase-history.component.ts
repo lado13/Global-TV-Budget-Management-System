@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 
@@ -12,7 +12,7 @@ import { environment } from '../../environment/environment';
 @Component({
   selector: 'app-purchase-history',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './purchase-history.component.html',
   styleUrls: ['./purchase-history.component.scss']
 })
@@ -30,11 +30,14 @@ export class PurchaseHistoryComponent implements OnInit {
   isFormModalOpen = false;
 
   tempFiles: File[] = [];
+  searchTerm: string = '';
 
   // ================= PAGINATION =================
   currentPage: number = 1;
   pageSize: number = 10;
   totalPages: number = 0;
+
+  isSaving = false;
 
   constructor(
     private fb: FormBuilder,
@@ -63,10 +66,37 @@ export class PurchaseHistoryComponent implements OnInit {
     });
   }
 
+  get filteredPurchases(): PurchaseHistory[] {
+    if (!this.searchTerm) return this.purchases;
+
+    const term = this.searchTerm.toLowerCase();
+
+    return this.purchases.filter(p => {
+      const buyer = this.getBuyerName(p.buyerId).toLowerCase();
+      const merchant = this.getMerchantName(p.merchantId).toLowerCase();
+      const amount = p.amount?.toString() || '';
+
+      return (
+        buyer.includes(term) ||
+        merchant.includes(term) ||
+        amount.includes(term)
+      );
+    });
+  }
+
   // ================= PAGINATED DATA =================
+  // get pagedPurchases(): PurchaseHistory[] {
+  //   const start = (this.currentPage - 1) * this.pageSize;
+  //   return this.purchases.slice(start, start + this.pageSize);
+  // }
   get pagedPurchases(): PurchaseHistory[] {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.purchases.slice(start, start + this.pageSize);
+    return this.filteredPurchases.slice(start, start + this.pageSize);
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
+    this.currentPage = 1;
   }
 
   nextPage(): void {
@@ -111,7 +141,8 @@ export class PurchaseHistoryComponent implements OnInit {
 
         this.purchases = sorted;
 
-        this.totalPages = Math.ceil(this.purchases.length / this.pageSize);
+        // this.totalPages = Math.ceil(this.purchases.length / this.pageSize);
+        this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
         this.currentPage = 1;
 
       } else {
@@ -147,29 +178,42 @@ export class PurchaseHistoryComponent implements OnInit {
 
   async save(): Promise<void> {
 
-    const attachments = await Promise.all(
-      this.tempFiles.map(async f => ({
-        id: 0,
-        fileName: f.name,
-        fileType: f.type,
-        content: await this.convertToBase64(f),
-        purchaseHistoryId: 0
-      }))
-    );
+    if (this.isSaving) return; 
+    this.isSaving = true;
 
-    const payload = { ...this.form.value, attachemnts: attachments };
+    try {
 
-    const request = payload.id
-      ? this.purchaseService.update(payload)
-      : this.purchaseService.add(payload);
+      const attachments = await Promise.all(
+        this.tempFiles.map(async f => ({
+          id: 0,
+          fileName: f.name,
+          fileType: f.type,
+          content: await this.convertToBase64(f),
+          purchaseHistoryId: 0
+        }))
+      );
 
-    request.subscribe({
-      next: () => {
-        this.loadAll();
-        this.closeFormModal();
-      },
-      error: err => console.error('Error:', err)
-    });
+      const payload = { ...this.form.value, attachemnts: attachments };
+
+      const request = payload.id
+        ? this.purchaseService.update(payload)
+        : this.purchaseService.add(payload);
+
+      request.subscribe({
+        next: () => {
+          this.loadAll();
+          this.closeFormModal();
+        },
+        error: err => console.error('Error:', err),
+        complete: () => {
+          this.isSaving = false;
+        }
+      });
+
+    } catch (e) {
+      console.error(e);
+      this.isSaving = false;
+    }
   }
 
   // ================= DELETE =================

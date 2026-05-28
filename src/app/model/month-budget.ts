@@ -6,6 +6,7 @@ export interface MonthBudget {
     year: number;                        // Year (e.g., 2026)
     budgetAmount: number;                // Total budget for the month
     remainingFromPreviousMonth: number;  // Carry-over amount
+    remainingBudget: number;
     createAt?: string | Date;            // Record creation timestamp
     updateAt?: string | Date;            // Record last update timestamp
 }

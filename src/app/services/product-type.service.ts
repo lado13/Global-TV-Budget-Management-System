@@ -8,33 +8,46 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class ProductTypeService {
+
   private http = inject(HttpClient);
   private apiUrl = environment.ProductTypeApi;
 
-  private typeSubject = new BehaviorSubject<ProductType[]>([]);
-  public productTypes$ = this.typeSubject.asObservable();
+  // 🔥 STATE STORE
+  private _data$ = new BehaviorSubject<ProductType[]>([]);
+  productTypes$ = this._data$.asObservable();
 
-  getAll(): void {
-    this.http.get<ProductType[]>(this.apiUrl).subscribe(data => {
-      this.typeSubject.next(data);
-    });
+  constructor() {
+    this.load(); // optional auto-load
   }
 
+  // --- LOAD ALL ---
+  load(): void {
+    const cacheBuster = `?t=${new Date().getTime()}`;
+
+    this.http.get<ProductType[]>(this.apiUrl + cacheBuster)
+      .subscribe(data => this._data$.next(data));
+  }
+
+  // --- CREATE ---
   create(name: string): Observable<ProductType> {
     return this.http.post<ProductType>(this.apiUrl, { id: 0, name }).pipe(
-      tap(() => this.getAll())
+      tap(() => this.load())
     );
   }
 
+  // --- UPDATE ---
   update(id: number, name: string): Observable<any> {
     return this.http.put(this.apiUrl, { id, name }).pipe(
-      tap(() => this.getAll())
+      tap(() => this.load())
     );
   }
 
+  // --- DELETE ---
   delete(id: number, name: string): Observable<any> {
-    return this.http.delete(this.apiUrl, { body: { id, name } }).pipe(
-      tap(() => this.getAll())
+    return this.http.delete(this.apiUrl, {
+      body: { id, name }
+    }).pipe(
+      tap(() => this.load())
     );
   }
 }

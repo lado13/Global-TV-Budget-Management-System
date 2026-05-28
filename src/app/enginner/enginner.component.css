@@ -10,7 +10,6 @@
   margin-bottom: 25px;
 }
 
-/* დამატების ფორმა */
 .add-card {
   background-color: #2f313d;
   padding: 20px;
@@ -49,7 +48,6 @@
   background: rgb(18.5714285714, 76.1428571429, 202.4285714286);
 }
 
-/* ცხრილის სტილები */
 .custom-table {
   width: 100%;
   border-collapse: collapse;
@@ -258,22 +256,16 @@
     content: "ID";
   }
   .custom-table td:nth-child(2)::before {
-    content: "მყიდველი";
+    content: "სახელი";
   }
   .custom-table td:nth-child(3)::before {
-    content: "მაღაზია";
+    content: "დამატების თარიღი";
   }
   .custom-table td:nth-child(4)::before {
-    content: "ტიპი";
+    content: "ბოლო განახლება";
   }
   .custom-table td:nth-child(5)::before {
-    content: "თანხა";
-  }
-  .custom-table td:nth-child(6)::before {
-    content: "თარიღი";
-  }
-  .custom-table td:nth-child(7)::before {
-    content: "ჩეკი";
+    content: "მოქმედება";
   }
   /* 💰 Amount highlight */
   .amount-text {

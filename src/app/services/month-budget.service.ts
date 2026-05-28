@@ -8,34 +8,46 @@ import { MonthBudget } from '../model/month-budget';
   providedIn: 'root'
 })
 export class MonthBudgetService {
+
   private http = inject(HttpClient);
   private apiUrl = environment.MonthBudgetApi;
 
-  private budgetSubject = new BehaviorSubject<MonthBudget[]>([]);
-  public budgets$ = this.budgetSubject.asObservable();
+  // 🔥 STATE STORE
+  private _data$ = new BehaviorSubject<MonthBudget[]>([]);
+  budgets$ = this._data$.asObservable();
 
-  getAll(): void {
-    this.http.get<MonthBudget[]>(this.apiUrl).subscribe(data => {
-      this.budgetSubject.next(data);
-    });
+  constructor() {
+    this.load(); // optional auto-load
   }
 
+  // --- LOAD ALL ---
+  load(): void {
+    const cacheBuster = `?t=${new Date().getTime()}`;
+
+    this.http.get<MonthBudget[]>(this.apiUrl + cacheBuster)
+      .subscribe(data => this._data$.next(data));
+  }
+
+  // --- CREATE ---
   create(budget: MonthBudget): Observable<MonthBudget> {
     return this.http.post<MonthBudget>(this.apiUrl, budget).pipe(
-      tap(() => this.getAll())
+      tap(() => this.load())
     );
   }
 
+  // --- UPDATE ---
   update(budget: MonthBudget): Observable<any> {
     return this.http.put(this.apiUrl, budget).pipe(
-      tap(() => this.getAll())
+      tap(() => this.load())
     );
   }
 
+  // --- DELETE ---
   delete(budget: MonthBudget): Observable<any> {
-    const options = { body: budget };
-    return this.http.delete(this.apiUrl, options).pipe(
-      tap(() => this.getAll())
+    return this.http.delete(this.apiUrl, {
+      body: budget
+    }).pipe(
+      tap(() => this.load())
     );
   }
 }

@@ -27,7 +27,7 @@ export class EnginnerComponent implements OnInit {
   selectedEngineer: Enginner | null = null;
 
   ngOnInit(): void {
-    this.service.getAll();
+    this.service.load();
   }
 
   addNew(nameInput: HTMLInputElement) {

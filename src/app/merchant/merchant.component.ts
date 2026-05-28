@@ -25,7 +25,7 @@ export class MerchantComponent implements OnInit {
 
   ngOnInit(): void {
     // Initial data load
-    this.service.getAll();
+    this.service.load();
   }
 
   // Handle adding a new merchant
