@@ -1,12 +1,14 @@
-
-
+/** Matches MonthBudgetDto from Global.Budget.Ge API. */
 export interface MonthBudget {
-    id?: number;                         // Primary Key (Optional for new records)
-    month: number;                       // Month number (e.g., 4 for April)
-    year: number;                        // Year (e.g., 2026)
-    budgetAmount: number;                // Total budget for the month
-    remainingFromPreviousMonth: number;  // Carry-over amount
-    remainingBudget: number;
-    createAt?: string | Date;            // Record creation timestamp
-    updateAt?: string | Date;            // Record last update timestamp
+  id?: number;
+  month: number;
+  year: number;
+  budgetAmount: number;
+  remainingFromPreviousMonth: number;
+  spentAmount?: number;
+  remainingAmount?: number;
+  /** Legacy alias still used by older UI code. */
+  remainingBudget?: number;
+  createAt?: string | Date;
+  updateAt?: string | Date;
 }

@@ -1,81 +1,157 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MerchantService } from '../services/merchant.service';
 import { Merchant } from '../model/merchant';
-import { CommonModule } from '@angular/common';
-import { map } from 'rxjs/operators'; // Required for stream transformation
+import { NamedEntityListBase } from '../shared/base/named-entity-list.base';
+import { DEFAULT_ICON } from '../shared/constants/app.constants';
 
 @Component({
   selector: 'app-merchant',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './merchant.component.html',
   styleUrl: './merchant.component.scss'
 })
-export class MerchantComponent implements OnInit {
+export class MerchantComponent extends NamedEntityListBase<Merchant> {
+  protected readonly entityService = inject(MerchantService);
 
-  private service = inject(MerchantService);
-
-  // Transform the stream to reverse the order (latest added on top)
-  merchants$ = this.service.merchants$.pipe(
-    map(data => data ? [...data].reverse() : [])
-  );
-
-  isEditModalOpen = false;
-  selectedMerchant: Merchant | null = null;
-
-  ngOnInit(): void {
-    // Initial data load
-    this.service.load();
+  get merchants$() {
+    return this.items$;
   }
 
-  // Handle adding a new merchant
-  onAdd(nameInput: HTMLInputElement) {
-    const name = nameInput.value.trim();
+  get selectedMerchant() {
+    return this.selectedItem;
+  }
+
+  newMerchant = { name: '', iconUrl: '' };
+  editIconUrl = '';
+  isUploadingImage = false;
+
+  private newIconFile: File | null = null;
+  private editIconFile: File | null = null;
+  private newPreviewObjectUrl: string | null = null;
+  private editPreviewObjectUrl: string | null = null;
+
+  protected getDeleteConfirmMessage(m: Merchant): string {
+    return `ნამდვილად გინდა წაშლო ${m.name}?`;
+  }
+
+  onNewIconSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      input.value = '';
+      return;
+    }
+
+    this.revokePreview(this.newPreviewObjectUrl);
+    this.newIconFile = file;
+    this.newPreviewObjectUrl = URL.createObjectURL(file);
+    this.newMerchant.iconUrl = this.newPreviewObjectUrl;
+    input.value = '';
+  }
+
+  onEditIconSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      input.value = '';
+      return;
+    }
+
+    this.revokePreview(this.editPreviewObjectUrl);
+    this.editIconFile = file;
+    this.editPreviewObjectUrl = URL.createObjectURL(file);
+    this.editIconUrl = this.editPreviewObjectUrl;
+    input.value = '';
+  }
+
+  clearNewIcon(): void {
+    this.revokePreview(this.newPreviewObjectUrl);
+    this.newPreviewObjectUrl = null;
+    this.newIconFile = null;
+    this.newMerchant.iconUrl = '';
+  }
+
+  clearEditIcon(): void {
+    this.revokePreview(this.editPreviewObjectUrl);
+    this.editPreviewObjectUrl = null;
+    this.editIconFile = null;
+    this.editIconUrl = this.selectedItem?.iconUrl ?? '';
+  }
+
+  addMerchant(): void {
+    const name = this.newMerchant.name.trim();
     if (!name) return;
 
-    this.service.create(name).subscribe({
+    this.isUploadingImage = !!this.newIconFile;
+    this.entityService.createWithIcon(name, this.newIconFile).subscribe({
       next: () => {
-        nameInput.value = ''; // Reset input on success
+        this.clearNewIcon();
+        this.newMerchant = { name: '', iconUrl: '' };
+        this.isUploadingImage = false;
       },
-      error: (err) => console.error('Error adding merchant:', err)
+      error: (err) => {
+        this.isUploadingImage = false;
+        console.error('Error adding merchant:', err);
+        alert('მერჩანტის დამატება ვერ მოხერხდა');
+      }
     });
   }
 
-  // Open modal for editing
-  onEdit(m: Merchant) {
-    // Create a shallow copy to avoid direct binding mutation
-    this.selectedMerchant = { ...m };
-    this.isEditModalOpen = true;
+  override onEdit(m: Merchant): void {
+    super.onEdit(m);
+    this.editIconFile = null;
+    this.revokePreview(this.editPreviewObjectUrl);
+    this.editPreviewObjectUrl = null;
+    this.editIconUrl = m.iconUrl ?? '';
   }
 
-  // Close the edit modal
-  closeModal() {
-    this.isEditModalOpen = false;
-    this.selectedMerchant = null;
-  }
-
-  // Save edited merchant details
-  saveEdit(newName: string) {
+  saveMerchantEdit(newName: string): void {
     const trimmedName = newName.trim();
+    if (!this.selectedItem) {
+      this.closeModal();
+      return;
+    }
 
-    if (this.selectedMerchant && trimmedName && trimmedName !== this.selectedMerchant.name) {
-      this.service.update(this.selectedMerchant.id, trimmedName).subscribe({
+    if (!trimmedName) {
+      this.closeModal();
+      return;
+    }
+
+    const existingUrl = this.editIconUrl.startsWith('blob:')
+      ? this.selectedItem.iconUrl
+      : this.editIconUrl.trim();
+
+    this.isUploadingImage = !!this.editIconFile;
+    this.entityService
+      .updateWithIcon(this.selectedItem.id, trimmedName, this.editIconFile, existingUrl)
+      .subscribe({
         next: () => {
+          this.isUploadingImage = false;
           this.closeModal();
         },
-        error: (err) => console.error('Error updating merchant:', err)
+        error: (err) => {
+          this.isUploadingImage = false;
+          console.error('Error updating merchant:', err);
+        }
       });
-    } else {
-      this.closeModal();
-    }
   }
 
-  // Delete a merchant with confirmation
-  onDelete(m: Merchant) {
-    if (confirm(`ნამდვილად გინდა წაშლო ${m.name}?`)) {
-      this.service.delete(m.id, m.name).subscribe({
-        error: (err) => console.error('Error deleting merchant:', err)
-      });
+  iconSrc(m: Merchant): string {
+    return m.iconUrl || DEFAULT_ICON;
+  }
+
+  private revokePreview(url: string | null): void {
+    if (url?.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
     }
   }
 }

@@ -1,53 +1,32 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from '../../environment/environment';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { MonthBudget } from '../model/month-budget';
+import { BaseStoreService } from '../shared/services/base-store.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MonthBudgetService {
+export class MonthBudgetService extends BaseStoreService<MonthBudget> {
+  protected readonly apiUrl = environment.MonthBudgetApi;
 
-  private http = inject(HttpClient);
-  private apiUrl = environment.MonthBudgetApi;
-
-  // 🔥 STATE STORE
-  private _data$ = new BehaviorSubject<MonthBudget[]>([]);
-  budgets$ = this._data$.asObservable();
+  /** Backward-compatible alias used by existing templates/components. */
+  readonly budgets$ = this.data$;
 
   constructor() {
-    this.load(); // optional auto-load
+    super();
+    this.load();
   }
 
-  // --- LOAD ALL ---
-  load(): void {
-    const cacheBuster = `?t=${new Date().getTime()}`;
-
-    this.http.get<MonthBudget[]>(this.apiUrl + cacheBuster)
-      .subscribe(data => this._data$.next(data));
-  }
-
-  // --- CREATE ---
   create(budget: MonthBudget): Observable<MonthBudget> {
-    return this.http.post<MonthBudget>(this.apiUrl, budget).pipe(
-      tap(() => this.load())
-    );
+    return this.refreshAfter(this.http.post<MonthBudget>(this.apiUrl, budget));
   }
 
-  // --- UPDATE ---
-  update(budget: MonthBudget): Observable<any> {
-    return this.http.put(this.apiUrl, budget).pipe(
-      tap(() => this.load())
-    );
+  update(budget: MonthBudget): Observable<unknown> {
+    return this.refreshAfter(this.http.put(this.apiUrl, budget));
   }
 
-  // --- DELETE ---
-  delete(budget: MonthBudget): Observable<any> {
-    return this.http.delete(this.apiUrl, {
-      body: budget
-    }).pipe(
-      tap(() => this.load())
-    );
+  delete(budget: MonthBudget): Observable<unknown> {
+    return this.refreshAfter(this.http.delete(this.apiUrl, { body: budget }));
   }
 }

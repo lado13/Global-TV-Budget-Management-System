@@ -1,87 +1,115 @@
 <div class="container main-wrapper">
-    <!-- <h2 class="page-title">პროდუქციის დასახელება</h2> -->
 
-    <div class="add-card">
-        <div class="input-group">
-            <input #typeName type="text" placeholder="დაამატე პროდუქციის დასახელება...">
-            <button class="btn-add" (click)="addType(typeName)">
-                <span class="icon">+</span> დამატება
+  <div class="add-card shadow-sm">
+    <div class="add-form">
+      <div class="field">
+        <label>პროდუქციის დასახელება</label>
+        <input type="text" [(ngModel)]="newType.name" placeholder="დაამატე პროდუქციის დასახელება...">
+      </div>
+      <div class="field">
+        <label>იკონი <span class="optional">(არასავალდებულო)</span></label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onNewIconSelected($event)" hidden>
+            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="newType.iconUrl" (click)="clearNewIcon()">წაშლა</button>
+        </div>
+        <img *ngIf="newType.iconUrl" class="image-preview" [src]="newType.iconUrl" alt="preview">
+      </div>
+      <button class="btn-add" type="button" (click)="addType()" [disabled]="isUploadingImage">
+        <span class="icon">+</span> დამატება
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container card">
+    @if (types$ | async; as list) {
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>დასახელება</th>
+          <th>თარიღი (შექმნა)</th>
+          <th>თარიღი (განახლება)</th>
+          <th class="text-end">მოქმედება</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of list; track item.id) {
+        <tr class="budget-row">
+          <td><span class="id-badge">#{{ item.id }}</span></td>
+          <td>
+            <strong class="item-name">
+              <img class="type-icon" [src]="iconSrc(item)" [alt]="item.name">
+              {{ item.name }}
+            </strong>
+          </td>
+          <td>
+            <strong class="text-light" *ngIf="item.createAt">
+              {{ item.createAt | date:'dd.MM.yyyy HH:mm' }}
+            </strong>
+          </td>
+          <td>
+            <strong class="text-light" *ngIf="item.updateAt">
+              {{ item.updateAt | date:'dd.MM.yyyy HH:mm' }}
+            </strong>
+          </td>
+          <td class="actions">
+            <button class="btn-edit-icon" title="რედაქტირება" (click)="editType(item)">
+              <i class="fa-solid fa-pen-to-square"></i>
             </button>
-        </div>
-    </div>
-
-    <div class="table-container card">
-        @if (types$ | async; as list) {
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>დასახელება</th>
-                    <th>თარიღი (შექმნა)</th>
-                    <th>თარიღი (განახლება)</th>
-                    <th class="text-end">მოქმედება</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (item of list; track item.id) {
-                <tr class="budget-row">
-                    <td><span class="id-badge">#{{ item.id }}</span></td>
-                    <td><strong class="item-name">{{ item.name }}</strong></td>
-                    <td>
-                        <strong class="text-light" *ngIf="item.createAt">
-                            {{ item.createAt | date:'dd.MM.yyyy HH:mm' }}
-                        </strong>
-
-                    </td>
-                    <td>
-                        <strong class="text-light">
-                            {{ item.updateAt | date:'dd.MM.yyyy HH:mm' }}
-                        </strong>
-                    </td>
-                    <td class="actions">
-                        <button class="btn-edit-icon" title="რედაქტირება" (click)="editType(item)">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button class="btn-delete-icon" title="წაშლა" (click)="deleteType(item)">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </td>
-                </tr>
-                } @empty {
-                <tr>
-                    <td colspan="4" class="no-data">მონაცემები არ მოიძებნა.</td>
-                </tr>
-                }
-            </tbody>
-        </table>
-        } @else {
-        <div class="loader">
-            <div class="spinner"></div>
-            <p>იტვირთება მონაცემები...</p>
-        </div>
+            <button class="btn-delete-icon" title="წაშლა" (click)="deleteType(item)">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="5" class="no-data">მონაცემები არ მოიძებნა.</td>
+        </tr>
         }
+      </tbody>
+    </table>
+    } @else {
+    <div class="loader">
+      <div class="spinner"></div>
+      <p>იტვირთება მონაცემები...</p>
     </div>
+    }
+  </div>
 
-    <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
-        <div class="modal-box" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <h3>ტიპის რედაქტირება</h3>
-                <button class="close-x" (click)="closeModal()">✕</button>
-            </div>
+  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>ტიპის რედაქტირება</h3>
+        <button class="close-x" (click)="closeModal()">✕</button>
+      </div>
 
-            <div class="field">
-                <label>პროდუქტის ტიპის სახელი</label>
-                <input #updatedName type="text" [value]="selectedType?.name" placeholder="შეიყვანეთ დასახელება">
-                <small class="update-info" *ngIf="selectedType?.updateAt"
-                    style="display: block; margin-top: 10px; color: #94a3b8; font-size: 11px;">
-                    ბოლო ცვლილება: {{ selectedType?.updateAt | date:'dd.MM.yyyy HH:mm' }}
-                </small>
-            </div>
+      <div class="field">
+        <label>პროდუქტის ტიპის სახელი</label>
+        <input #updatedName type="text" [value]="selectedType?.name" placeholder="შეიყვანეთ დასახელება">
+        <small class="update-info" *ngIf="selectedType?.updateAt">
+          ბოლო ცვლილება: {{ selectedType?.updateAt | date:'dd.MM.yyyy HH:mm' }}
+        </small>
+      </div>
 
-            <div class="modal-actions">
-                <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
-                <button class="btn-save" (click)="saveEdit(updatedName.value)">შენახვა</button>
-            </div>
+      <div class="field">
+        <label>იკონი</label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onEditIconSelected($event)" hidden>
+            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="editIconUrl" (click)="clearEditIcon()">წაშლა</button>
         </div>
+        <img *ngIf="editIconUrl" class="image-preview" [src]="editIconUrl" alt="preview">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
+        <button class="btn-save" (click)="saveTypeEdit(updatedName.value)" [disabled]="isUploadingImage">შენახვა</button>
+      </div>
     </div>
+  </div>
 </div>

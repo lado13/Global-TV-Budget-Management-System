@@ -1,10 +1,23 @@
 <div class="container main-wrapper">
-  <!-- <h2 class="page-title">სავაჭრო დაწესებულებები</h2> -->
 
   <div class="add-card shadow-sm">
-    <div class="input-group">
-      <input #mName type="text" placeholder="დაამატე ახალი მაღაზია...">
-      <button class="btn-add" (click)="onAdd(mName)">
+    <div class="add-form">
+      <div class="field">
+        <label>მაღაზიის სახელი</label>
+        <input type="text" [(ngModel)]="newMerchant.name" placeholder="დაამატე ახალი მაღაზია...">
+      </div>
+      <div class="field">
+        <label>იკონი</label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onNewIconSelected($event)" hidden>
+            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="newMerchant.iconUrl" (click)="clearNewIcon()">წაშლა</button>
+        </div>
+        <img *ngIf="newMerchant.iconUrl" class="image-preview" [src]="newMerchant.iconUrl" alt="preview">
+      </div>
+      <button class="btn-add" type="button" (click)="addMerchant()" [disabled]="isUploadingImage">
         <span class="icon">+</span> მაღაზიის დამატება
       </button>
     </div>
@@ -26,11 +39,11 @@
         @for (m of list; track m.id) {
         <tr class="budget-row">
           <td><span class="id-badge">#{{ m.id }}</span></td>
-          <td><strong class="item-name text-light">{{ m.name }}</strong></td>
+          <td><strong class="item-name text-light">
+            <img class="merchant-icon" [src]="iconSrc(m)" [alt]="m.name">{{ m.name }}</strong></td>
 
           <td>
             <div class="timestamps text-white">
-
               {{ m.createAt | date:'dd.MM.yyyy HH:mm' }}
             </div>
           </td>
@@ -39,7 +52,6 @@
             <div class="timestamps">
               @if (m.updateAt && m.updateAt !== m.createAt) {
               <span class="text-white">
-
                 {{ m.updateAt | date:'dd.MM.yyyy HH:mm' }}
               </span>
               } @else {
@@ -84,9 +96,21 @@
         <input #updatedMName type="text" [value]="selectedMerchant?.name" placeholder="Enter name">
       </div>
 
+      <div class="field">
+        <label>Icon</label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onEditIconSelected($event)" hidden>
+            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="editIconUrl" (click)="clearEditIcon()">წაშლა</button>
+        </div>
+        <img *ngIf="editIconUrl" class="image-preview" [src]="editIconUrl" alt="preview">
+      </div>
+
       <div class="modal-actions">
         <button class="btn-cancel" (click)="closeModal()">Cancel</button>
-        <button class="btn-save" (click)="saveEdit(updatedMName.value)">Save</button>
+        <button class="btn-save" (click)="saveMerchantEdit(updatedMName.value)" [disabled]="isUploadingImage">Save</button>
       </div>
     </div>
   </div>

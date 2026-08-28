@@ -1,53 +1,63 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { Observable, of, switchMap, map, tap } from 'rxjs';
 import { environment } from '../../environment/environment';
 import { ProductType } from '../model/product-type';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { NamedEntityService } from '../shared/services/named-entity.service';
+import { FileService } from './file.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProductTypeService {
+export class ProductTypeService extends NamedEntityService<ProductType> {
+  protected readonly apiUrl = environment.ProductTypeApi;
+  private readonly fileService = inject(FileService);
 
-  private http = inject(HttpClient);
-  private apiUrl = environment.ProductTypeApi;
-
-  // 🔥 STATE STORE
-  private _data$ = new BehaviorSubject<ProductType[]>([]);
-  productTypes$ = this._data$.asObservable();
+  readonly productTypes$ = this.data$;
 
   constructor() {
-    this.load(); // optional auto-load
+    super();
+    this.load();
   }
 
-  // --- LOAD ALL ---
-  load(): void {
-    const cacheBuster = `?t=${new Date().getTime()}`;
+  createWithIcon(name: string, iconFile?: File | null): Observable<unknown> {
+    return this.http.post<ProductType | number>(this.apiUrl, { id: 0, name }).pipe(
+      switchMap(() =>
+        this.http.get<ProductType[]>(`${this.apiUrl}?t=${Date.now()}`).pipe(
+          tap((list) => this.setData(list ?? [])),
+          map((list) => [...(list ?? [])].reverse().find((t) => t.name === name)?.id)
+        )
+      ),
+      switchMap((typeId) => {
+        if (!typeId) {
+          throw new Error('Product type created but id not found');
+        }
+        if (!iconFile) {
+          return of(null);
+        }
 
-    this.http.get<ProductType[]>(this.apiUrl + cacheBuster)
-      .subscribe(data => this._data$.next(data));
-  }
-
-  // --- CREATE ---
-  create(name: string): Observable<ProductType> {
-    return this.http.post<ProductType>(this.apiUrl, { id: 0, name }).pipe(
+        return this.fileService.uploadAndGetUrl(iconFile).pipe(
+          switchMap((iconUrl) =>
+            this.http.put(this.apiUrl, { id: typeId, name, iconUrl })
+          )
+        );
+      }),
       tap(() => this.load())
     );
   }
 
-  // --- UPDATE ---
-  update(id: number, name: string): Observable<any> {
-    return this.http.put(this.apiUrl, { id, name }).pipe(
-      tap(() => this.load())
-    );
-  }
+  updateWithIcon(
+    id: number,
+    name: string,
+    iconFile?: File | null,
+    existingIconUrl?: string
+  ): Observable<unknown> {
+    if (!iconFile) {
+      const extras = existingIconUrl?.trim() ? { iconUrl: existingIconUrl.trim() } : {};
+      return this.update(id, name, extras as Partial<ProductType>);
+    }
 
-  // --- DELETE ---
-  delete(id: number, name: string): Observable<any> {
-    return this.http.delete(this.apiUrl, {
-      body: { id, name }
-    }).pipe(
-      tap(() => this.load())
-    );
+    return this.fileService
+      .uploadAndGetUrl(iconFile)
+      .pipe(switchMap((iconUrl) => this.update(id, name, { iconUrl } as Partial<ProductType>)));
   }
 }

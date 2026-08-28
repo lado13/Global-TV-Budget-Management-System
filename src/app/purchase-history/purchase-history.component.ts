@@ -1,13 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 import { PurchaseHistoryService } from '../services/purchase-history.service';
 import { FileService } from '../services/file.service';
+import { EnginnerService } from '../services/enginner.service';
+import { MerchantService } from '../services/merchant.service';
+import { ProductTypeService } from '../services/product-type.service';
 
 import { PurchaseHistory, Attachment } from '../model/purchase-history';
+import { Enginner } from '../model/enginner';
+import { EngineerProfile } from '../model/engineer-profile';
+import { Merchant } from '../model/merchant';
+import { ProductType } from '../model/product-type';
 import { environment } from '../../environment/environment';
+import {
+  DEFAULT_AVATAR,
+  DEFAULT_ICON,
+  DEFAULT_PAGE_SIZE
+} from '../shared/constants/app.constants';
 
 @Component({
   selector: 'app-purchase-history',
@@ -16,38 +28,47 @@ import { environment } from '../../environment/environment';
   templateUrl: './purchase-history.component.html',
   styleUrls: ['./purchase-history.component.scss']
 })
-export class PurchaseHistoryComponent implements OnInit {
+export class PurchaseHistoryComponent implements OnInit, OnDestroy {
+  private readonly fb = inject(FormBuilder);
+  private readonly purchaseService = inject(PurchaseHistoryService);
+  private readonly fileService = inject(FileService);
+  private readonly enginnerService = inject(EnginnerService);
+  private readonly merchantService = inject(MerchantService);
+  private readonly productTypeService = inject(ProductTypeService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  private readonly subscriptions = new Subscription();
 
   form!: FormGroup;
 
   purchases: PurchaseHistory[] = [];
-  engineers: any[] = [];
-  merchants: any[] = [];
-  productTypes: any[] = [];
+  engineers: Enginner[] = [];
+  merchants: Merchant[] = [];
+  productTypes: ProductType[] = [];
   files: Attachment[] = [];
+  profiles: EngineerProfile[] = [];
+
   selectedPurchase: PurchaseHistory | null = null;
   isModalOpen = false;
   isFormModalOpen = false;
 
   tempFiles: File[] = [];
-  searchTerm: string = '';
+  searchTerm = '';
 
-  // ================= PAGINATION =================
-  currentPage: number = 1;
-  pageSize: number = 10;
-  totalPages: number = 0;
+  currentPage = 1;
+  pageSize = DEFAULT_PAGE_SIZE;
+  totalPages = 0;
 
   isSaving = false;
+  previewImageUrl: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private http: HttpClient,
-    private purchaseService: PurchaseHistoryService,
-    private fileService: FileService
-  ) { }
+  /** Check file image URL by purchase id (list column). */
+  checkThumbById: Record<number, string> = {};
+  private readonly thumbLoading = new Set<number>();
+  private readonly thumbDone = new Set<number>();
 
   ngOnInit(): void {
-
     this.form = this.fb.group({
       id: [0],
       purchaseDate: ['', Validators.required],
@@ -61,9 +82,46 @@ export class PurchaseHistoryComponent implements OnInit {
 
     this.loadAll();
 
-    this.fileService.files$.subscribe(res => {
-      this.files = res ?? [];
-    });
+    this.subscriptions.add(
+      this.fileService.files$.subscribe((res) => {
+        this.files = res ?? [];
+      })
+    );
+
+    this.subscriptions.add(
+      this.enginnerService.engineerProfiles$.subscribe((res) => {
+        this.profiles = res ?? [];
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  openImagePreview(file: Attachment): void {
+    const url = this.getImage(file);
+    if (url && this.isImage(file)) {
+      this.previewImageUrl = url;
+    }
+  }
+
+  openProfilePreview(buyerId: number): void {
+    const url = this.getProfileImage(buyerId);
+    if (url) {
+      this.previewImageUrl = url;
+    }
+  }
+
+  openCheckPreview(purchaseId: number): void {
+    const url = this.checkThumbById[purchaseId];
+    if (url) {
+      this.previewImageUrl = url;
+    }
+  }
+
+  closeImagePreview(): void {
+    this.previewImageUrl = null;
   }
 
   get filteredPurchases(): PurchaseHistory[] {
@@ -71,24 +129,15 @@ export class PurchaseHistoryComponent implements OnInit {
 
     const term = this.searchTerm.toLowerCase();
 
-    return this.purchases.filter(p => {
-      const buyer = this.getBuyerName(p.buyerId).toLowerCase();
-      const merchant = this.getMerchantName(p.merchantId).toLowerCase();
+    return this.purchases.filter((p) => {
+      const buyer = this.getBuyerName(p.buyerId, p).toLowerCase();
+      const merchant = this.getMerchantName(p.merchantId, p).toLowerCase();
       const amount = p.amount?.toString() || '';
 
-      return (
-        buyer.includes(term) ||
-        merchant.includes(term) ||
-        amount.includes(term)
-      );
+      return buyer.includes(term) || merchant.includes(term) || amount.includes(term);
     });
   }
 
-  // ================= PAGINATED DATA =================
-  // get pagedPurchases(): PurchaseHistory[] {
-  //   const start = (this.currentPage - 1) * this.pageSize;
-  //   return this.purchases.slice(start, start + this.pageSize);
-  // }
   get pagedPurchases(): PurchaseHistory[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredPurchases.slice(start, start + this.pageSize);
@@ -97,147 +146,159 @@ export class PurchaseHistoryComponent implements OnInit {
   updatePagination(): void {
     this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
     this.currentPage = 1;
+    this.scheduleLoadCheckThumbs();
   }
 
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.scheduleLoadCheckThumbs();
     }
   }
 
   prevPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.scheduleLoadCheckThumbs();
     }
   }
 
-  // ================= NAME HELPERS =================
-
-  getBuyerName(id: number): string {
-    const user = this.engineers.find(x => x.id === id);
-    return user ? (user.name || user.fullName) : 'Unknown';
+  getBuyerName(id: number, purchase?: PurchaseHistory): string {
+    if (purchase?.buyerName) return purchase.buyerName;
+    const user = this.engineers.find((x) => x.id === id);
+    return user?.name || 'Unknown';
   }
 
-  getMerchantName(id: number): string {
-    const m = this.merchants.find(x => x.id === id);
-    return m ? m.name : 'Unknown';
+  getMerchantName(id: number, purchase?: PurchaseHistory): string {
+    if (purchase?.merchantName) return purchase.merchantName;
+    return this.merchantService.getName(id);
   }
 
-  getProductTypeName(id: number): string {
-    const p = this.productTypes.find(x => x.id === id);
-    return p ? p.name : 'Unknown';
+  getProductTypeName(id: number, purchase?: PurchaseHistory): string {
+    if (purchase?.productTypeName) return purchase.productTypeName;
+    return this.productTypeService.getName(id);
   }
-
-  // ================= LOAD =================
 
   loadAll(): void {
-
     this.purchaseService.load();
+    this.enginnerService.load();
+    this.enginnerService.loadProfiles();
+    this.merchantService.load();
+    this.productTypeService.load();
 
-    this.purchaseService.data$.subscribe(res => {
-      if (res) {
+    this.subscriptions.add(
+      this.purchaseService.data$.subscribe((res) => {
+        if (res) {
+          const sorted = [...res].sort((a, b) => {
+            const dateA = a.purchaseDate ? Date.parse(a.purchaseDate) : 0;
+            const dateB = b.purchaseDate ? Date.parse(b.purchaseDate) : 0;
+            return dateB - dateA;
+          });
 
-        const sorted = [...res].sort((a, b) => b.id - a.id);
+          this.purchases = sorted;
+          this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
+          this.currentPage = 1;
+          this.scheduleLoadCheckThumbs();
+        } else {
+          this.purchases = [];
+          this.totalPages = 0;
+        }
+      })
+    );
 
-        this.purchases = sorted;
+    this.subscriptions.add(
+      this.enginnerService.engineers$.subscribe((res) => {
+        this.engineers = res ?? [];
+      })
+    );
 
-        // this.totalPages = Math.ceil(this.purchases.length / this.pageSize);
-        this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
-        this.currentPage = 1;
+    this.subscriptions.add(
+      this.merchantService.merchants$.subscribe((res) => {
+        this.merchants = res ?? [];
+      })
+    );
 
-      } else {
-        this.purchases = [];
-        this.totalPages = 0;
-      }
-    });
-
-    this.http.get<any[]>(environment.EnginnerApi)
-      .subscribe(res => this.engineers = res ?? []);
-
-    this.http.get<any[]>(environment.MerchantApi)
-      .subscribe(res => this.merchants = res ?? []);
-
-    this.http.get<any[]>(environment.ProductTypeApi)
-      .subscribe(res => this.productTypes = res ?? []);
-  }
-
-  // ================= BASE64 =================
-
-  convertToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-
-      reader.onload = () => {
-        resolve((reader.result as string).split(',')[1]);
-      };
-
-      reader.onerror = err => reject(err);
-    });
+    this.subscriptions.add(
+      this.productTypeService.productTypes$.subscribe((res) => {
+        this.productTypes = res ?? [];
+      })
+    );
   }
 
   async save(): Promise<void> {
-
-    if (this.isSaving) return; 
+    if (this.isSaving) return;
     this.isSaving = true;
 
     try {
+      const formValue = this.form.value;
+      const isEdit = !!formValue.id && formValue.id !== 0;
 
-      const attachments = await Promise.all(
-        this.tempFiles.map(async f => ({
-          id: 0,
-          fileName: f.name,
-          fileType: f.type,
-          content: await this.convertToBase64(f),
-          purchaseHistoryId: 0
-        }))
-      );
+      const payload: PurchaseHistory = {
+        ...formValue,
+        buyerName: this.getBuyerName(formValue.buyerId),
+        merchantName: this.getMerchantName(formValue.merchantId),
+        productTypeName: this.getProductTypeName(formValue.porductTypeId)
+      };
 
-      const payload = { ...this.form.value, attachemnts: attachments };
-
-      const request = payload.id
+      const request = isEdit
         ? this.purchaseService.update(payload)
         : this.purchaseService.add(payload);
 
       request.subscribe({
-        next: () => {
-          this.loadAll();
+        next: (response: any) => {
+          let purchaseId: number | null = null;
+
+          if (isEdit) {
+            purchaseId = formValue.id;
+          } else if (typeof response === 'number') {
+            purchaseId = response;
+          } else if (response && typeof response === 'object') {
+            purchaseId = response.id || response.purchaseHistoryId || response.Id || null;
+          }
+
+          if (this.tempFiles.length > 0 && purchaseId) {
+            const id = purchaseId;
+            this.fileService.upload(id, this.tempFiles).subscribe({
+              next: () => {
+                this.thumbDone.delete(id);
+                this.thumbLoading.delete(id);
+                delete this.checkThumbById[id];
+                this.loadCheckThumb(id);
+              },
+              error: (err) => console.error('Failed to upload files', err)
+            });
+            this.tempFiles = [];
+          }
+
+          this.purchaseService.load();
           this.closeFormModal();
+          this.isSaving = false;
         },
-        error: err => console.error('Error:', err),
-        complete: () => {
+        error: (err) => {
+          console.error('Error saving purchase:', err);
           this.isSaving = false;
         }
       });
-
     } catch (e) {
       console.error(e);
       this.isSaving = false;
     }
   }
 
-  // ================= DELETE =================
-
   delete(p: PurchaseHistory): void {
-    const confirmDelete = confirm('მართლა გინდა ამ შესყიდვის წაშლა?');
-    if (!confirmDelete) return;
+    if (!confirm('მართლა გინდა ამ შესყიდვის წაშლა?')) return;
 
-    this.purchaseService.delete(p).subscribe(() => {
-      this.loadAll();
-    });
+    this.purchaseService.delete(p).subscribe();
   }
 
-  // ================= FILES =================
-
-  onCreateFileSelect(event: any): void {
-    const files: FileList = event.target.files;
-    this.tempFiles = files ? Array.from(files) : [];
+  onCreateFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.tempFiles = input.files ? Array.from(input.files) : [];
   }
 
   openDetails(p: PurchaseHistory): void {
     this.selectedPurchase = p;
     this.isModalOpen = true;
-
     this.fileService.loadFiles(p.id);
   }
 
@@ -254,17 +315,20 @@ export class PurchaseHistoryComponent implements OnInit {
 
   deleteFile(file: Attachment): void {
     if (!this.selectedPurchase) return;
+    if (!confirm('ნამდვილად გინდა ამ ქვითრის წაშლა?')) return;
 
-    const confirmDelete = confirm('ნამდვილად გინდა ამ ქვითრის წაშლა?');
-    if (!confirmDelete) return;
+    const purchaseId = this.selectedPurchase.id;
 
-    this.fileService.delete(file.id, this.selectedPurchase.id)
-      .subscribe({
-        next: () => {
-          this.fileService.loadFiles(this.selectedPurchase!.id);
-        },
-        error: (err: any) => console.error(err)
-      });
+    this.fileService.delete(file.id, purchaseId).subscribe({
+      next: () => {
+        this.fileService.loadFiles(purchaseId);
+        this.thumbDone.delete(purchaseId);
+        this.thumbLoading.delete(purchaseId);
+        delete this.checkThumbById[purchaseId];
+        this.loadCheckThumb(purchaseId);
+      },
+      error: (err) => console.error(err)
+    });
   }
 
   getImage(file: Attachment): string {
@@ -274,14 +338,12 @@ export class PurchaseHistoryComponent implements OnInit {
       return `data:${file.fileType};base64,${file.content}`;
     }
 
-    return `http://192.168.1.102:1121/api/FileControllers/file/download/${file.id}`;
+    return environment.fileDownloadUrl(file.id);
   }
 
   isImage(file: Attachment): boolean {
     return !!file?.fileType?.includes('image');
   }
-
-  // ================= MODALS =================
 
   openCreateModal(): void {
     this.form.reset({
@@ -301,12 +363,68 @@ export class PurchaseHistoryComponent implements OnInit {
 
   edit(p: PurchaseHistory): void {
     this.form.patchValue(p);
-
     this.tempFiles = [];
     this.isFormModalOpen = true;
   }
 
   closeFormModal(): void {
     this.isFormModalOpen = false;
+  }
+
+  getMerchantIcon(id: number): string {
+    return this.merchants.find((x) => x.id === id)?.iconUrl || DEFAULT_ICON;
+  }
+
+  getProductTypeIcon(id: number): string {
+    return this.productTypes.find((x) => x.id === id)?.iconUrl || DEFAULT_ICON;
+  }
+
+  getProfileImage(buyerId: number): string {
+    const profile = this.profiles.find((p) => p.engineerId === buyerId);
+    return profile?.imageUrl || DEFAULT_AVATAR;
+  }
+
+  /** Defer so SSR / first paint are not blocked. */
+  private scheduleLoadCheckThumbs(): void {
+    if (!this.isBrowser) return;
+    setTimeout(() => this.loadCheckThumbsForPage(), 0);
+  }
+
+  private loadCheckThumbsForPage(): void {
+    if (!this.isBrowser) return;
+
+    for (const p of this.pagedPurchases) {
+      if (p.checkIsThere) {
+        this.loadCheckThumb(p.id);
+      }
+    }
+  }
+
+  private loadCheckThumb(purchaseId: number): void {
+    if (!this.isBrowser) return;
+    if (this.thumbDone.has(purchaseId) || this.thumbLoading.has(purchaseId)) return;
+
+    this.thumbLoading.add(purchaseId);
+
+    this.subscriptions.add(
+      this.fileService.getFiles(purchaseId).subscribe({
+        next: (files) => {
+          const image = (files ?? []).find((f) => f.fileType?.includes('image'));
+          if (image) {
+            this.checkThumbById = {
+              ...this.checkThumbById,
+              [purchaseId]: this.getImage(image)
+            };
+            this.cdr.markForCheck();
+          }
+          this.thumbDone.add(purchaseId);
+          this.thumbLoading.delete(purchaseId);
+        },
+        error: () => {
+          this.thumbDone.add(purchaseId);
+          this.thumbLoading.delete(purchaseId);
+        }
+      })
+    );
   }
 }

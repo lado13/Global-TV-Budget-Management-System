@@ -1,27 +1,100 @@
-# GlobalTVBudgetManagementSystem
+# Global TV — Budget Management System
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.1.1.
+Angular web app for tracking company purchases, merchants, engineers, product categories, and monthly budgets. UI language is Georgian.
 
-## Development server
+## Screenshots
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+### Purchase history
 
-## Code scaffolding
+Main dashboard: purchase list with buyer avatars, merchant icons, product type, amount (₾), date, receipt thumbnail + status, and view / delete / edit actions.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+![Purchase history](docs/purchase-history.png)
 
-## Build
+**What you see**
+- Left sidebar: **Global TV** logo and navigation  
+  - შესყიდვები და ისტორია (Purchases & history)  
+  - ინჟინრები (Engineers)  
+  - მაღაზიები (Merchants)  
+  - პროდუქტის კატეგორიები (Product categories)  
+  - ბიუჯეტი (Budget)
+- Search by name or amount
+- **ახალი შესყიდვის დამატება** — add a new purchase
+- Table columns: `#ID`, მყიდველი, მაღაზია, პროდუქტის ტიპი, თანხა, თარიღი, ჩეკი, მოქმედება
+- Receipt column shows the uploaded check image thumbnail and a green check / red X
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### New purchase modal
 
-## Running unit tests
+Form to create a purchase with optional receipt upload.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+![New purchase modal](docs/new-purchase-modal.png)
 
-## Running end-to-end tests
+**Fields**
+| Field (KA) | Meaning |
+|---|---|
+| თარიღი | Purchase date |
+| თანხა | Amount |
+| ინჟინერი | Buyer / engineer |
+| მაღაზია | Merchant / store |
+| პროდუქტის ტიპი | Product category |
+| კომენტარი | Optional note |
+| ჩეკი არის / არ არის | Receipt present toggle |
+| ატვირთეთ ჩეკის სურათი | Upload receipt image file(s) |
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Actions: **გაუქმება** (Cancel), **შენახვა** (Save).
 
-## Further help
+## Features
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- Purchase history with search, pagination, and CRUD
+- Engineer profiles with avatar upload
+- Merchants and product categories with icons
+- Monthly budget tracking
+- Receipt file upload / download / preview (fullscreen)
+- Click engineer avatar in the list to open full-size image
+
+## Tech stack
+
+- Angular 17 (standalone components, SSR)
+- Bootstrap 5
+- RxJS
+- REST API backend (`FileControllers`, `PurchaseHistory`, `Enginner`, `Merchant`, `ProductType`, `MonthBudget`, `EngineerProfile`)
+
+## Getting started
+
+```bash
+npm install
+ng serve
+```
+
+Open `http://localhost:4200/`.
+
+### Build
+
+```bash
+ng build
+```
+
+Artifacts go to `dist/`.
+
+### SSR serve (after build)
+
+```bash
+npm run serve:ssr:Global-TV-Budget-Management-System
+```
+
+## Project structure (high level)
+
+```
+src/app/
+  purchase-history/   # purchases list + create/edit/view modals
+  enginner/           # engineers + profiles
+  merchant/           # stores
+  product-type/       # product categories
+  month-budget/       # budgets
+  services/           # API services
+  shared/             # base store, nav config, constants
+  model/              # DTOs
+```
+
+## Environment
+
+API base URL is set in `src/environment/environment.ts` (e.g. `http://192.168.1.102:1121/api`).

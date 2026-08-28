@@ -60,7 +60,7 @@
 
           <!-- 🔥 remainingBudget -->
           <td class="text-light text-decoration-underline">
-            {{ b.remainingBudget | currency:'₾ ' }}
+            {{ (b.remainingAmount ?? b.remainingBudget) | currency:'₾ ' }}
           </td>
 
           <td>

@@ -1,81 +1,161 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ProductTypeService } from '../services/product-type.service';
 import { ProductType } from '../model/product-type';
-import { CommonModule } from '@angular/common';
-import { map } from 'rxjs/operators'; // Required for reversing the stream
+import { NamedEntityListBase } from '../shared/base/named-entity-list.base';
+import { DEFAULT_ICON } from '../shared/constants/app.constants';
 
 @Component({
   selector: 'app-product-type',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './product-type.component.html',
   styleUrl: './product-type.component.scss'
 })
-export class ProductTypeComponent implements OnInit {
-  private service = inject(ProductTypeService);
+export class ProductTypeComponent extends NamedEntityListBase<ProductType> {
+  protected readonly entityService = inject(ProductTypeService);
 
-  // Reversing the array to show the latest added types at the top
-  types$ = this.service.productTypes$.pipe(
-    map(data => data ? [...data].reverse() : [])
-  );
-
-  // Modal control variables
-  isEditModalOpen = false;
-  selectedType: ProductType | null = null;
-
-  ngOnInit(): void {
-    // Initial fetch of product types
-    this.service.load();
+  get types$() {
+    return this.items$;
   }
 
-  // Handle adding a new product type
-  addType(input: HTMLInputElement) {
-    const value = input.value.trim();
-    if (!value) return;
+  get selectedType() {
+    return this.selectedItem;
+  }
 
-    this.service.create(value).subscribe({
+  newType = { name: '', iconUrl: '' };
+  editIconUrl = '';
+  isUploadingImage = false;
+
+  private newIconFile: File | null = null;
+  private editIconFile: File | null = null;
+  private newPreviewObjectUrl: string | null = null;
+  private editPreviewObjectUrl: string | null = null;
+
+  protected getDeleteConfirmMessage(item: ProductType): string {
+    return `ნამდვილად გინდა წაშალო ${item.name}?`;
+  }
+
+  onNewIconSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      input.value = '';
+      return;
+    }
+
+    this.revokePreview(this.newPreviewObjectUrl);
+    this.newIconFile = file;
+    this.newPreviewObjectUrl = URL.createObjectURL(file);
+    this.newType.iconUrl = this.newPreviewObjectUrl;
+    input.value = '';
+  }
+
+  onEditIconSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      input.value = '';
+      return;
+    }
+
+    this.revokePreview(this.editPreviewObjectUrl);
+    this.editIconFile = file;
+    this.editPreviewObjectUrl = URL.createObjectURL(file);
+    this.editIconUrl = this.editPreviewObjectUrl;
+    input.value = '';
+  }
+
+  clearNewIcon(): void {
+    this.revokePreview(this.newPreviewObjectUrl);
+    this.newPreviewObjectUrl = null;
+    this.newIconFile = null;
+    this.newType.iconUrl = '';
+  }
+
+  clearEditIcon(): void {
+    this.revokePreview(this.editPreviewObjectUrl);
+    this.editPreviewObjectUrl = null;
+    this.editIconFile = null;
+    this.editIconUrl = this.selectedItem?.iconUrl ?? '';
+  }
+
+  addType(): void {
+    const name = this.newType.name.trim();
+    if (!name) return;
+
+    this.isUploadingImage = !!this.newIconFile;
+    this.entityService.createWithIcon(name, this.newIconFile).subscribe({
       next: () => {
-        input.value = ''; // Clear input on success
+        this.clearNewIcon();
+        this.newType = { name: '', iconUrl: '' };
+        this.isUploadingImage = false;
       },
-      error: (err) => console.error('Error adding product type:', err)
+      error: (err) => {
+        this.isUploadingImage = false;
+        console.error('Error adding product type:', err);
+        alert('პროდუქტის ტიპის დამატება ვერ მოხერხდა');
+      }
     });
   }
 
-  // Open the edit modal and set the selected item
-  editType(item: ProductType) {
-    // Create a copy to prevent direct mutation before saving
-    this.selectedType = { ...item };
-    this.isEditModalOpen = true;
+  editType(item: ProductType): void {
+    this.onEdit(item);
+    this.editIconFile = null;
+    this.revokePreview(this.editPreviewObjectUrl);
+    this.editPreviewObjectUrl = null;
+    this.editIconUrl = item.iconUrl ?? '';
   }
 
-  // Close modal and reset selection
-  closeModal() {
-    this.isEditModalOpen = false;
-    this.selectedType = null;
+  deleteType(item: ProductType): void {
+    this.onDelete(item);
   }
 
-  // Save changes to the product type name
-  saveEdit(newName: string) {
+  saveTypeEdit(newName: string): void {
     const trimmedName = newName.trim();
+    if (!this.selectedItem) {
+      this.closeModal();
+      return;
+    }
 
-    if (this.selectedType && trimmedName && trimmedName !== this.selectedType.name) {
-      this.service.update(this.selectedType.id, trimmedName).subscribe({
+    if (!trimmedName) {
+      this.closeModal();
+      return;
+    }
+
+    const existingUrl = this.editIconUrl.startsWith('blob:')
+      ? this.selectedItem.iconUrl
+      : this.editIconUrl.trim();
+
+    this.isUploadingImage = !!this.editIconFile;
+    this.entityService
+      .updateWithIcon(this.selectedItem.id, trimmedName, this.editIconFile, existingUrl)
+      .subscribe({
         next: () => {
+          this.isUploadingImage = false;
           this.closeModal();
         },
-        error: (err) => console.error('Error updating product type:', err)
+        error: (err) => {
+          this.isUploadingImage = false;
+          console.error('Error updating product type:', err);
+        }
       });
-    } else {
-      this.closeModal();
-    }
   }
 
-  // Delete product type with a confirmation prompt
-  deleteType(item: ProductType) {
-    if (confirm(`ნამდვილად გინდა წაშალო ${item.name}?`)) {
-      this.service.delete(item.id, item.name).subscribe({
-        error: (err) => console.error('Error deleting product type:', err)
-      });
+  iconSrc(item: ProductType): string {
+    return item.iconUrl || DEFAULT_ICON;
+  }
+
+  private revokePreview(url: string | null): void {
+    if (url?.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
     }
   }
 }

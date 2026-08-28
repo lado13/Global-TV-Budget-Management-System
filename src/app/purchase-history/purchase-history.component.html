@@ -6,6 +6,8 @@
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
 
+        <!-- <input type="text" placeholder="მოძებნე სახელით ან თანხით..." [(ngModel)]="searchTerm"
+          (input)="updatePagination()" /> -->
         <input type="text" placeholder="მოძებნე სახელით ან თანხით..." [(ngModel)]="searchTerm"
           (input)="updatePagination()" />
 
@@ -40,12 +42,33 @@
     <div *ngFor="let p of pagedPurchases" class="row border history-item align-items-center">
       <div class="col-content">
         <div class="id-box history-value">#{{ p.id }}</div>
-        <div class="text-bold history-value">{{ getBuyerName(p.buyerId) }}</div>
-        <div class="history-value">{{ getMerchantName(p.merchantId) }}</div>
-        <div><span class="type-badge history-value">{{ getProductTypeName(p.porductTypeId) }}</span></div>
+        <div class="text-bold history-value">
+
+          <img class="merchant-icon rounded-circle engineer-avatar"
+            [src]="getProfileImage(p.buyerId)"
+            [alt]="getBuyerName(p.buyerId, p)"
+            title="სრული სურათი"
+            (click)="openProfilePreview(p.buyerId); $event.stopPropagation()">
+          
+          {{ getBuyerName(p.buyerId, p) }}</div>
+        <div class="history-value">
+          <img class="merchant-icon" [src]="getMerchantIcon(p.merchantId)" [alt]="getMerchantName(p.merchantId, p)">
+          {{ getMerchantName(p.merchantId, p) }}
+        </div>
+        <div class="history-value">
+          <img class="merchant-icon" [src]="getProductTypeIcon(p.porductTypeId)"
+            [alt]="getProductTypeName(p.porductTypeId, p)">{{ getProductTypeName(p.porductTypeId, p) }}
+        </div>
         <div class="amount-text history-value">{{ p.amount | currency:'₾ ' }}</div>
         <div class="purchase-date history-value">{{ p.purchaseDate | date:'dd.MM.yyyy' }}</div>
-        <div>
+        <div class="check-cell history-value">
+          <img *ngIf="checkThumbById[p.id] as checkUrl"
+            class="check-thumb"
+            [src]="checkUrl"
+            alt="ჩეკი"
+            title="სრული ჩეკი"
+            loading="lazy"
+            (click)="openCheckPreview(p.id); $event.stopPropagation()">
 
           <span [class.no]="!p.checkIsThere">
             <i *ngIf="p.checkIsThere" class="fa-solid fa-check check" style="color: rgb(0, 252, 19);"></i>
@@ -92,7 +115,7 @@
             <label>ინჟინერი</label>
             <select class="modal-field" formControlName="buyerId">
               <option [ngValue]="null">აირჩიე ინჟინერი</option>
-              <option *ngFor="let e of engineers" [value]="e.id">{{ e.name || e.fullName }}</option>
+              <option *ngFor="let e of engineers" [value]="e.id">{{ e.name }}</option>
             </select>
           </div>
 
@@ -137,7 +160,7 @@
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="closeFormModal()">გაუქმება</button>
-  
+
 
           <button type="submit" class="btn-save" [disabled]="form.invalid || isSaving">
 
@@ -162,15 +185,15 @@
         </div>
         <div class="info-item">
           <span class="label">მყიდველი</span>
-          <span class="value">{{ getBuyerName(selectedPurchase?.buyerId!) }}</span>
+          <span class="value">{{ getBuyerName(selectedPurchase?.buyerId!, selectedPurchase!) }}</span>
         </div>
         <div class="info-item">
           <span class="label">მაღაზია</span>
-          <span class="value">{{ getMerchantName(selectedPurchase?.merchantId!) }}</span>
+          <span class="value">{{ getMerchantName(selectedPurchase?.merchantId!, selectedPurchase!) }}</span>
         </div>
         <div class="info-item">
           <span class="label">ტიპი</span>
-          <span class="value">{{ getProductTypeName(selectedPurchase?.porductTypeId!) }}</span>
+          <span class="value">{{ getProductTypeName(selectedPurchase?.porductTypeId!, selectedPurchase!) }}</span>
         </div>
         <div class="info-item">
           <span class="label">თანხა</span>
@@ -191,9 +214,16 @@
       <h4>მიბმული ფაილები</h4>
       <div class="files-container">
         <div class="file-card" *ngFor="let file of files || []">
-          <div class="file-preview">
-            <img *ngIf="file?.fileType?.includes('image')" [src]="getImage(file)" />
-            <div *ngIf="!file?.fileType?.includes('image')" class="file-icon">📄</div>
+          <div class="file-preview" (click)="openImagePreview(file)">
+            <ng-container *ngIf="file?.fileType?.includes('image'); else docIcon">
+              <img [src]="getImage(file)" />
+              <div class="zoom-overlay">
+                <span>🔍</span>
+              </div>
+            </ng-container>
+            <ng-template #docIcon>
+              <div class="file-icon">📄</div>
+            </ng-template>
           </div>
           <div class="file-info">
             <span class="file-name">{{ file.fileName }}</span>
@@ -203,12 +233,20 @@
             </div>
           </div>
         </div>
+
         <p class="no-files" *ngIf="!files.length">ფაილი იტვირთება...</p>
       </div>
 
       <div class="modal-actions">
         <button class="btn-save" (click)="closeModal()">დახურვა</button>
       </div>
+    </div>
+  </div>
+
+  <div class="image-preview-modal" *ngIf="previewImageUrl" (click)="closeImagePreview()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <span class="close-btn" (click)="closeImagePreview()">&times;</span>
+      <img [src]="previewImageUrl" alt="Fullscreen Preview" />
     </div>
   </div>
 

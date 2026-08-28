@@ -4,6 +4,7 @@ import { MonthBudget } from '../model/month-budget';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { map } from 'rxjs/operators';
+import { getMonthName } from '../shared/constants/app.constants';
 
 @Component({
   selector: 'app-month-budget',
@@ -15,23 +16,24 @@ import { map } from 'rxjs/operators';
 export class MonthBudgetComponent implements OnInit {
   private service = inject(MonthBudgetService);
 
-  // Stream with sorting logic: show latest by date or ID
- budgets$ = this.service.budgets$.pipe(
-  map(data =>
-    [...data].sort((a, b) => {
-      const aValue = a.year * 12 + a.month;
-      const bValue = b.year * 12 + b.month;
-      return bValue - aValue;
-    })
-  )
-);
+  budgets$ = this.service.budgets$.pipe(
+    map((data) =>
+      [...data].sort((a, b) => {
+        const aValue = a.year * 12 + a.month;
+        const bValue = b.year * 12 + b.month;
+        return bValue - aValue;
+      })
+    )
+  );
 
   newBudget: MonthBudget = {
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
     budgetAmount: 0,
-    remainingBudget: 0,
-    remainingFromPreviousMonth: 0
+    remainingFromPreviousMonth: 0,
+    spentAmount: 0,
+    remainingAmount: 0,
+    remainingBudget: 0
   };
 
   isEditModalOpen = false;
@@ -41,7 +43,7 @@ export class MonthBudgetComponent implements OnInit {
     this.service.load();
   }
 
-  saveBudget() {
+  saveBudget(): void {
     if (this.newBudget.budgetAmount <= 0) return;
 
     this.service.create(this.newBudget).subscribe({
@@ -53,46 +55,33 @@ export class MonthBudgetComponent implements OnInit {
     });
   }
 
-  getMonthName(month: number): string {
-    const months = [
-      'იანვარი',
-      'თებერვალი',
-      'მარტი',
-      'აპრილი',
-      'მაისი',
-      'ივნისი',
-      'ივლისი',
-      'აგვისტო',
-      'სექტემბერი',
-      'ოქტომბერი',
-      'ნოემბერი',
-      'დეკემბერი'
-    ];
+  getMonthName = getMonthName;
 
-    return months[month - 1] || '';
-  }
-
-  onEdit(budget: MonthBudget) {
+  onEdit(budget: MonthBudget): void {
     this.selectedBudget = { ...budget };
     this.isEditModalOpen = true;
   }
 
-  closeModal() {
+  closeModal(): void {
     this.isEditModalOpen = false;
     this.selectedBudget = null;
   }
 
-  updateBudget() {
-    if (this.selectedBudget) {
-      this.service.update(this.selectedBudget).subscribe({
-        next: () => this.closeModal(),
-        error: (err) => console.error('Error:', err)
-      });
-    }
+  updateBudget(): void {
+    if (!this.selectedBudget) return;
+
+    this.service.update(this.selectedBudget).subscribe({
+      next: () => this.closeModal(),
+      error: (err) => console.error('Error:', err)
+    });
   }
 
-  removeBudget(budget: MonthBudget) {
-    if (confirm(`წავშალოთ ბიუჯეტი: თარიღით ${budget.month}/${budget.year} თანხა ${budget.budgetAmount}₾?`)) {
+  removeBudget(budget: MonthBudget): void {
+    if (
+      confirm(
+        `წავშალოთ ბიუჯეტი: თარიღით ${budget.month}/${budget.year} თანხა ${budget.budgetAmount}₾?`
+      )
+    ) {
       this.service.delete(budget).subscribe();
     }
   }

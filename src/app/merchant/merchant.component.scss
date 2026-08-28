@@ -6,6 +6,14 @@ $border: #e2e8f0;
 .main-wrapper {
     max-width: 900px;
     margin: 40px auto;
+
+    .merchant-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
 }
 
 .page-title {
@@ -20,6 +28,47 @@ $border: #e2e8f0;
     border-radius: 12px;
     border: 1px solid $border;
     margin-bottom: 20px;
+
+    .add-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+
+            label {
+                color: #94a3b8;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid $border;
+                border-radius: 8px;
+
+                &:focus {
+                    outline: none;
+                    border-color: $primary;
+                }
+            }
+        }
+
+        .btn-add {
+            align-self: flex-end;
+            background: $primary;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    }
 
     .input-group {
         display: flex;
@@ -49,6 +98,10 @@ $border: #e2e8f0;
     }
 }
 
+.budget-row {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
 .custom-table {
     width: 100%;
     border-collapse: collapse;
@@ -64,7 +117,6 @@ $border: #e2e8f0;
 
     td {
         padding: 15px;
-        border-bottom: 1px solid #f1f5f9;
         font-size: 14px;
     }
 
@@ -349,4 +401,44 @@ $border: #e2e8f0;
 
     padding: 15px;
     z-index: 1000;
+}
+
+.image-upload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.file-pick-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.clear-img-btn {
+    border: none;
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.image-preview {
+    margin-top: 10px;
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    background: #fff;
 }

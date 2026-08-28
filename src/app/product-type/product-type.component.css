@@ -47,6 +47,10 @@
   background: rgb(19.4285714286, 79.6571428571, 211.7714285714);
 }
 
+.budget-row {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
 .custom-table {
   width: 100%;
   border-collapse: collapse;
@@ -61,7 +65,6 @@
 }
 .custom-table td {
   padding: 15px 20px;
-  border-bottom: 1px solid #f1f5f9;
   font-size: 14px;
 }
 .custom-table .id-badge {

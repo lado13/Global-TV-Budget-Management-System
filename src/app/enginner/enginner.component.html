@@ -1,10 +1,45 @@
 <div class="container main-wrapper">
-  <!-- <h2 class="page-title">ინჟინერების</h2> -->
 
   <div class="add-card shadow-sm">
-    <div class="input-group">
-      <input #newName type="text" placeholder="ჩაწერე ინჟინრის სახელი და გვარი...">
-      <button class="btn-add" (click)="addNew(newName)">
+    <div class="add-form">
+      <div class="field">
+        <label>სახელი და გვარი</label>
+        <input type="text" [(ngModel)]="newEngineer.name" placeholder="ჩაწერე ინჟინრის სახელი და გვარი...">
+      </div>
+
+      <div class="field">
+        <label>პროფილის სურათი <span class="optional">(არასავალდებულო)</span></label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onNewImageSelected($event)" hidden>
+            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="newEngineer.imageUrl" (click)="clearNewImage()">წაშლა</button>
+        </div>
+        <img *ngIf="newEngineer.imageUrl" class="image-preview" [src]="newEngineer.imageUrl" alt="preview">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>ტელეფონი <span class="optional">(არასავალდებულო)</span></label>
+          <input type="text" [(ngModel)]="newEngineer.phone" placeholder="ტელეფონი">
+        </div>
+        <div class="field">
+          <label>ელფოსტა <span class="optional">(არასავალდებულო)</span></label>
+          <input type="email" [(ngModel)]="newEngineer.email" placeholder="email@example.com">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>პოზიცია <span class="optional">(არასავალდებულო)</span></label>
+          <input type="text" [(ngModel)]="newEngineer.position" placeholder="მაგ. Duty Engineer">
+        </div>
+        <div class="field">
+          <label>აღწერა <span class="optional">(არასავალდებულო)</span></label>
+          <input type="text" [(ngModel)]="newEngineer.description" placeholder="მოკლე აღწერა">
+        </div>
+      </div>
+      <button class="btn-add" type="button" (click)="addNew()" [disabled]="isUploadingImage">
         <span class="icon">+</span> დამატება
       </button>
     </div>
@@ -26,11 +61,12 @@
         @for (eng of list; track eng.id) {
         <tr class="budget-row">
           <td><span class="id-badge">#{{ eng.id }}</span></td>
-          <td><strong class="eng-name">{{ eng.name }}</strong></td>
+          <td><strong class="eng-name">
+              <img [src]="getProfileImage(eng.id)" alt="{{ eng.name }}" class="merchant-icon">{{ eng.name
+              }}</strong></td>
 
           <td>
             <div class="timestamps text-white">
-
               {{ eng.createAt | date:'dd.MM.yyyy HH:mm' }}
             </div>
           </td>
@@ -39,7 +75,6 @@
             <div class="timestamps">
               @if (eng.updateAt && eng.updateAt !== eng.createAt) {
               <span class="text-white">
-
                 {{ eng.updateAt | date:'dd.MM.yyyy HH:mm' }}
               </span>
               } @else {
@@ -84,9 +119,41 @@
         <input #updatedName type="text" [value]="selectedEngineer?.name" placeholder="შეიყვანეთ სახელი">
       </div>
 
+      <div class="field">
+        <label>პროფილის სურათი</label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onEditImageSelected($event)" hidden>
+            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="editProfile.imageUrl" (click)="clearEditImage()">წაშლა</button>
+        </div>
+        <img *ngIf="editProfile.imageUrl" class="image-preview" [src]="editProfile.imageUrl" alt="preview">
+      </div>
+
+      <div class="field">
+        <label>ტელეფონი</label>
+        <input type="text" [(ngModel)]="editProfile.phone" placeholder="ტელეფონი">
+      </div>
+
+      <div class="field">
+        <label>ელფოსტა</label>
+        <input type="email" [(ngModel)]="editProfile.email" placeholder="email@example.com">
+      </div>
+
+      <div class="field">
+        <label>პოზიცია</label>
+        <input type="text" [(ngModel)]="editProfile.position" placeholder="პოზიცია">
+      </div>
+
+      <div class="field">
+        <label>აღწერა</label>
+        <input type="text" [(ngModel)]="editProfile.description" placeholder="აღწერა">
+      </div>
+
       <div class="modal-actions">
         <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
-        <button class="btn-save" (click)="saveEdit(updatedName.value)">შენახვა</button>
+        <button class="btn-save" (click)="saveEdit(updatedName.value)" [disabled]="isUploadingImage">შენახვა</button>
       </div>
     </div>
   </div>

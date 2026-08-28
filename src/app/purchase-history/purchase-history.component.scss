@@ -101,7 +101,7 @@ $radius: 16px;
 
 .table-header {
     display: grid;
-    grid-template-columns: 57px 180px 150px 160px 120px 141px 100px 1fr;
+    grid-template-columns: 62px 169px 220px 144px 120px 141px 100px 1fr;
     padding: 15px 20px;
     background: linear-gradient(14deg,
             #3473ff 0%,
@@ -135,7 +135,7 @@ $radius: 16px;
     .col-content {
 
         display: grid;
-        grid-template-columns: 79px 176px 150px 160px 126px 141px 100px;
+        grid-template-columns: 74px 182px 208px 160px 126px 141px 100px;
         align-items: center;
         font-size: 14px;
         color: #ffffff;
@@ -607,6 +607,43 @@ $radius: 16px;
     // border: 1px solid #cdcdcd !important;
     border: none !important;
     margin-top: 10px;
+
+    .merchant-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .engineer-avatar {
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+        &:hover {
+            transform: scale(1.12);
+            box-shadow: 0 0 0 2px rgba(66, 69, 90, 0.35);
+        }
+    }
+
+    .check-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .check-thumb {
+        width: 44px;
+        height: 44px;
+        object-fit: cover;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 1px solid #d0d5dd;
+
+        &:hover {
+            box-shadow: 0 0 0 2px rgba(52, 115, 255, 0.4);
+        }
+    }
 }
 
 .history-value {
@@ -621,6 +658,8 @@ $radius: 16px;
    ========================================= */
 
 @media (max-width: 991px) {
+
+
 
 
     .id-box {
@@ -736,6 +775,117 @@ $radius: 16px;
     /* 📁 Files grid */
     .files-container {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+// ================= FILE PREVIEW & ZOOM EFFECT =================
+
+.file-preview {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 6px;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .file-icon {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 32px;
+        background-color: #f1f3f5;
+    }
+
+    /* ლუპის და შავი ფონის გადაფარება */
+    .zoom-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        /* კრიტიკულად მნიშვნელოვანია: კლიკმა რომ გაიაროს ფენაში */
+
+        span {
+            font-size: 24px;
+            color: #fff;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+    }
+
+    /* მაუსის მიტანის (Hover) ეფექტები */
+    &:hover {
+        img {
+            transform: scale(1.08);
+        }
+
+        .zoom-overlay {
+            opacity: 1;
+
+            span {
+                transform: scale(1);
+            }
+        }
+    }
+}
+
+// ================= FULLSCREEN IMAGE PREVIEW MODAL =================
+
+.image-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    cursor: pointer;
+
+    .modal-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        cursor: default;
+
+        img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #fff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+
+            &:hover {
+                color: #ff4d4d;
+            }
+        }
     }
 }
 
