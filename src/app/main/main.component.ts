@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ACCESS_PASSWORD, NAV_ITEMS, NavItem } from '../shared/config/nav.config';
+import { LanguageService } from '../shared/i18n/language.service';
+import { TranslatePipe } from '../shared/i18n/translate.pipe';
+import { AppLang } from '../shared/i18n/translations';
 
 @Component({
   selector: 'app-main',
@@ -12,7 +15,8 @@ import { ACCESS_PASSWORD, NAV_ITEMS, NavItem } from '../shared/config/nav.config
     RouterLink,
     RouterLinkActive,
     RouterModule,
-    FormsModule
+    FormsModule,
+    TranslatePipe
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss'
@@ -26,7 +30,12 @@ export class MainComponent {
   targetRoute = '';
   passwordInput = '';
 
-  constructor(private router: Router) {}
+  readonly langService = inject(LanguageService);
+  private readonly router = inject(Router);
+
+  setLang(lang: AppLang): void {
+    this.langService.setLang(lang);
+  }
 
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
@@ -61,7 +70,7 @@ export class MainComponent {
       this.accessModal = false;
       this.router.navigate([this.targetRoute]);
     } else {
-      alert('პაროლი არასწორია!');
+      alert(this.langService.t('access.wrongPassword'));
     }
   }
 }

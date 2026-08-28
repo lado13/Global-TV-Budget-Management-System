@@ -5,16 +5,19 @@ import { ProductTypeService } from '../services/product-type.service';
 import { ProductType } from '../model/product-type';
 import { NamedEntityListBase } from '../shared/base/named-entity-list.base';
 import { DEFAULT_ICON } from '../shared/constants/app.constants';
+import { TranslatePipe } from '../shared/i18n/translate.pipe';
+import { LanguageService } from '../shared/i18n/language.service';
 
 @Component({
   selector: 'app-product-type',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './product-type.component.html',
   styleUrl: './product-type.component.scss'
 })
 export class ProductTypeComponent extends NamedEntityListBase<ProductType> {
   protected readonly entityService = inject(ProductTypeService);
+  private readonly lang = inject(LanguageService);
 
   get types$() {
     return this.items$;
@@ -34,7 +37,13 @@ export class ProductTypeComponent extends NamedEntityListBase<ProductType> {
   private editPreviewObjectUrl: string | null = null;
 
   protected getDeleteConfirmMessage(item: ProductType): string {
-    return `ნამდვილად გინდა წაშალო ${item.name}?`;
+    return this.lang.t('productType.confirmDelete', { name: item.name });
+  }
+
+  protected override resetCreateForm(): void {
+    this.clearNewIcon();
+    this.newType = { name: '', iconUrl: '' };
+    this.isUploadingImage = false;
   }
 
   onNewIconSelected(event: Event): void {
@@ -43,7 +52,7 @@ export class ProductTypeComponent extends NamedEntityListBase<ProductType> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      alert(this.lang.t('common.pickImageFile'));
       input.value = '';
       return;
     }
@@ -61,7 +70,7 @@ export class ProductTypeComponent extends NamedEntityListBase<ProductType> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      alert(this.lang.t('common.pickImageFile'));
       input.value = '';
       return;
     }
@@ -97,11 +106,12 @@ export class ProductTypeComponent extends NamedEntityListBase<ProductType> {
         this.clearNewIcon();
         this.newType = { name: '', iconUrl: '' };
         this.isUploadingImage = false;
+        this.closeCreateModal();
       },
       error: (err) => {
         this.isUploadingImage = false;
         console.error('Error adding product type:', err);
-        alert('პროდუქტის ტიპის დამატება ვერ მოხერხდა');
+        alert(this.lang.t('productType.addFailed'));
       }
     });
   }

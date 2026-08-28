@@ -1,87 +1,53 @@
 <div class="container main-wrapper">
-  <h2 class="page-title">ყოველთვიური ბიუჯეტი</h2>
 
-  <div class="add-card shadow-sm">
-    <div class="budget-inputs">
-      <div class="input-field">
-        <label class="text-light">თვე</label>
-        <input type="number" [(ngModel)]="newBudget.month" min="1" max="12">
-      </div>
-      <div class="input-field">
-        <label class="text-light">წელი</label>
-        <input type="number" [(ngModel)]="newBudget.year">
-      </div>
-      <div class="input-field">
-        <label class="text-light">თანხა</label>
-        <input type="number" [(ngModel)]="newBudget.budgetAmount" placeholder="0.00">
-      </div>
-      <button class="btn-add-budget" (click)="saveBudget()">ბიუჯეტის დაწესება</button>
-    </div>
+  <div class="header-section">
+    <h2 class="page-title">{{ 'budget.title' | t }}</h2>
+    <button type="button" class="btn-add-main" (click)="openCreateModal()">
+      <span class="icon">+</span>
+      {{ 'budget.add' | t }}
+    </button>
   </div>
 
-  <div class="table-container card shadow">
+  <div class="table-container card">
+    <p class="card-title">{{ 'budget.list' | t }}</p>
     @if (budgets$ | async; as list) {
     <table class="custom-table">
       <thead>
         <tr>
-          <th>პერიოდი / შექმნილი</th>
-          <th>ბიუჯეტი</th>
-          <th>გადმოყოლილი</th>
-          <th>დარჩენილი თანხა</th>
-          <th>ჯამში</th>
-
-          <th class="text-end">მოქმედება</th>
+          <th>{{ 'budget.period' | t }}</th>
+          <th>{{ 'budget.amount' | t }}</th>
+          <th>{{ 'budget.carried' | t }}</th>
+          <th>{{ 'budget.remaining' | t }}</th>
+          <th>{{ 'budget.total' | t }}</th>
+          <th class="text-end">{{ 'common.actions' | t }}</th>
         </tr>
       </thead>
       <tbody>
-        @for (b of budgets$ | async; track b.id) {
+        @for (b of list; track b.id) {
         <tr class="budget-row">
           <td>
-            <div class="period-info">
-              <span class="period-badge">{{ getMonthName(b.month) }} • {{ b.createAt | date:'dd.MM.yyyy
-                HH:mm' }}</span>
-
-              <!-- <div class="timestamps">
-                <small class="text-light" *ngIf="b.createAt">
-                  <i class="fa-solid fa-clock-rotate-left"></i>
-                  {{ getMonthName(b.month) }} {{ b.year }} • {{ b.createAt | date:'dd.MM.yyyy HH:mm' }}
-                </small>
-              </div> -->
-            </div>
+            <span class="period-badge">{{ monthLabel(b.month) }} • {{ b.createAt | date:'dd.MM.yyyy HH:mm' }}</span>
           </td>
-
-          <td class="amount text-light">
-            {{ b.budgetAmount | currency:'₾ ' }}
-          </td>
-
-          <td class="text-light">
-            {{ b.remainingFromPreviousMonth | currency:'₾ ' }}
-          </td>
-
-          <!-- 🔥 remainingBudget -->
-          <td class="text-light text-decoration-underline">
-            {{ (b.remainingAmount ?? b.remainingBudget) | currency:'₾ ' }}
-          </td>
-
+          <td class="amount">{{ b.budgetAmount | currency:'₾ ' }}</td>
+          <td>{{ b.remainingFromPreviousMonth | currency:'₾ ' }}</td>
+          <td>{{ (b.remainingAmount ?? b.remainingBudget) | currency:'₾ ' }}</td>
           <td>
             <strong class="total-amount">
               {{ b.budgetAmount + b.remainingFromPreviousMonth | currency:'₾ ' }}
             </strong>
           </td>
-
           <td class="actions">
-            <button class="btn-edit-icon" (click)="onEdit(b)">
+            <button type="button" class="btn-edit-icon" (click)="onEdit(b)" [title]="'common.edit' | t">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-
-            <button class="btn-delete-icon" (click)="removeBudget(b)">
-              <i class="fa-solid fa-trash-can"></i>
+            <button type="button" class="btn-delete-icon" (click)="removeBudget(b)" [title]="'common.delete' | t">
+              <i class="fa-solid fa-trash-can" style="color: #dc2626;"></i>
             </button>
           </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="6" class="no-data">ბიუჯეტის ჩანაწერები არ მოიძებნა.</td>
+          <td colspan="6" class="no-data">{{ 'budget.empty' | t }}</td>
         </tr>
         }
       </tbody>
@@ -89,31 +55,66 @@
     } @else {
     <div class="loader">
       <div class="spinner"></div>
-      <p>იტვირთება მონაცემები...</p>
+      <p>{{ 'common.loading' | t }}</p>
     </div>
     }
   </div>
 
-  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>ბიუჯეტის რედაქტირება</h3>
-        <button class="close-x" (click)="closeModal()">✕</button>
+        <h3>{{ 'budget.new' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeCreateModal()">✕</button>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>{{ 'common.month' | t }}</label>
+          <input type="number" [(ngModel)]="newBudget.month" min="1" max="12">
+        </div>
+        <div class="field">
+          <label>{{ 'common.year' | t }}</label>
+          <input type="number" [(ngModel)]="newBudget.year">
+        </div>
+      </div>
+      <div class="field">
+        <label>{{ 'common.amount' | t }}</label>
+        <input type="number" [(ngModel)]="newBudget.budgetAmount" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label>{{ 'budget.carriedFromPrev' | t }}</label>
+        <input type="number" [(ngModel)]="newBudget.remainingFromPreviousMonth" placeholder="0.00">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeCreateModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="saveBudget()">{{ 'common.save' | t }}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'budget.edit' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeModal()">✕</button>
       </div>
 
       <div class="modal-body" *ngIf="selectedBudget">
         <div class="field">
-          <label>ბიუჯეტის რაოდენობა ({{selectedBudget.month}}/{{selectedBudget.year}})</label>
+          <label>
+            {{ 'budget.amountLabel' | t:{ month: selectedBudget.month, year: selectedBudget.year } }}
+          </label>
           <input type="number" [(ngModel)]="selectedBudget.budgetAmount">
         </div>
         <small class="update-info" *ngIf="selectedBudget.updateAt">
-          ბოლო ცვლილება: {{ selectedBudget.updateAt | date:'short' }}
+          {{ 'common.lastChange' | t }} {{ selectedBudget.updateAt | date:'short' }}
         </small>
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
-        <button class="btn-save" (click)="updateBudget()">განახლება</button>
+        <button type="button" class="btn-cancel" (click)="closeModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="updateBudget()">{{ 'common.update' | t }}</button>
       </div>
     </div>
   </div>

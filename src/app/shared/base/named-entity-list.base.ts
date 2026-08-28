@@ -13,6 +13,7 @@ export abstract class NamedEntityListBase<T extends NamedEntity> implements OnIn
 
   items$!: Observable<T[]>;
   isEditModalOpen = false;
+  isCreateModalOpen = false;
   selectedItem: T | null = null;
 
   ngOnInit(): void {
@@ -28,6 +29,19 @@ export abstract class NamedEntityListBase<T extends NamedEntity> implements OnIn
 
   protected abstract getDeleteConfirmMessage(item: T): string;
 
+  /** Override to reset feature create form state. */
+  protected resetCreateForm(): void {}
+
+  openCreateModal(): void {
+    this.resetCreateForm();
+    this.isCreateModalOpen = true;
+  }
+
+  closeCreateModal(): void {
+    this.isCreateModalOpen = false;
+    this.resetCreateForm();
+  }
+
   onAdd(nameInput: HTMLInputElement): void {
     const name = nameInput.value.trim();
     if (!name) return;
@@ -35,6 +49,7 @@ export abstract class NamedEntityListBase<T extends NamedEntity> implements OnIn
     this.entityService.create(name).subscribe({
       next: () => {
         nameInput.value = '';
+        this.closeCreateModal();
       },
       error: (err) => console.error('Error creating item:', err)
     });

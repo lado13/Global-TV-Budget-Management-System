@@ -5,16 +5,19 @@ import { MerchantService } from '../services/merchant.service';
 import { Merchant } from '../model/merchant';
 import { NamedEntityListBase } from '../shared/base/named-entity-list.base';
 import { DEFAULT_ICON } from '../shared/constants/app.constants';
+import { TranslatePipe } from '../shared/i18n/translate.pipe';
+import { LanguageService } from '../shared/i18n/language.service';
 
 @Component({
   selector: 'app-merchant',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './merchant.component.html',
   styleUrl: './merchant.component.scss'
 })
 export class MerchantComponent extends NamedEntityListBase<Merchant> {
   protected readonly entityService = inject(MerchantService);
+  private readonly lang = inject(LanguageService);
 
   get merchants$() {
     return this.items$;
@@ -34,7 +37,13 @@ export class MerchantComponent extends NamedEntityListBase<Merchant> {
   private editPreviewObjectUrl: string | null = null;
 
   protected getDeleteConfirmMessage(m: Merchant): string {
-    return `ნამდვილად გინდა წაშლო ${m.name}?`;
+    return this.lang.t('merchant.confirmDelete', { name: m.name });
+  }
+
+  protected override resetCreateForm(): void {
+    this.clearNewIcon();
+    this.newMerchant = { name: '', iconUrl: '' };
+    this.isUploadingImage = false;
   }
 
   onNewIconSelected(event: Event): void {
@@ -43,7 +52,7 @@ export class MerchantComponent extends NamedEntityListBase<Merchant> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      alert(this.lang.t('common.pickImageFile'));
       input.value = '';
       return;
     }
@@ -61,7 +70,7 @@ export class MerchantComponent extends NamedEntityListBase<Merchant> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      alert(this.lang.t('common.pickImageFile'));
       input.value = '';
       return;
     }
@@ -97,11 +106,12 @@ export class MerchantComponent extends NamedEntityListBase<Merchant> {
         this.clearNewIcon();
         this.newMerchant = { name: '', iconUrl: '' };
         this.isUploadingImage = false;
+        this.closeCreateModal();
       },
       error: (err) => {
         this.isUploadingImage = false;
         console.error('Error adding merchant:', err);
-        alert('მერჩანტის დამატება ვერ მოხერხდა');
+        alert(this.lang.t('merchant.addFailed'));
       }
     });
   }

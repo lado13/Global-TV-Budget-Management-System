@@ -1,29 +1,54 @@
-<!-- ☰ Burger button (მხოლოდ mobile-ზე გამოჩნდება) -->
-<button class="menu-toggle" (click)="toggleMenu()">☰</button>
+<button type="button" class="menu-toggle" (click)="toggleMenu()" aria-label="Menu">
+  <i class="fa-solid" [class.fa-bars]="!isMenuOpen" [class.fa-xmark]="isMenuOpen"></i>
+</button>
+
+<div class="nav-backdrop" *ngIf="isMenuOpen" (click)="closeMenu()"></div>
 
 <nav class="navbar" [class.open]="isMenuOpen">
-  <div class="nav-container">
-    <div class="nav-logo" routerLink="/">
-      <p>
-        <span class="text-danger">📺 Global</span> TV
-      </p>
-    </div>
+  <a class="brand-card" routerLink="/" (click)="closeMenu()">
+    <span class="brand-badge">TV</span>
+    <span class="brand-meta">
+      <span class="brand-title">Global TV</span>
+      <span class="brand-sub">Budget Management</span>
+    </span>
+  </a>
 
-    <ul class="nav-links">
-      @for (item of navItems; track item.path) {
-      <li>
-        <a
-          class="link"
-          [routerLink]="item.requiresAccess ? null : item.path"
-          routerLinkActive="active"
-          (click)="onNavClick(item, $event)"
-        >
-          {{ item.label }}
-        </a>
-      </li>
-      }
-    </ul>
+  <div class="lang-card" role="group" aria-label="Language">
+    <button
+      type="button"
+      class="lang-btn"
+      [class.active]="langService.lang === 'en'"
+      (click)="setLang('en')"
+    >
+      ENG
+    </button>
+    <button
+      type="button"
+      class="lang-btn"
+      [class.active]="langService.lang === 'ka'"
+      (click)="setLang('ka')"
+    >
+      GEO
+    </button>
   </div>
+
+  <ul class="nav-cards">
+    @for (item of navItems; track item.path) {
+    <li>
+      <a
+        class="nav-card"
+        [routerLink]="item.requiresAccess ? null : item.path"
+        routerLinkActive="active"
+        (click)="onNavClick(item, $event)"
+      >
+        <span class="nav-card-icon">
+          <i [class]="'fa-solid ' + item.icon"></i>
+        </span>
+        <span class="nav-card-text">{{ item.labelKey | t }}</span>
+      </a>
+    </li>
+    }
+  </ul>
 </nav>
 
 <div class="page-content">
@@ -31,12 +56,25 @@
 </div>
 
 <div class="modal-backdrop" *ngIf="accessModal">
-  <div class="modal-box">
-    <h2>🔐 Access Required</h2>
-    <input type="password" [(ngModel)]="passwordInput" placeholder="შეიყვანე პაროლი" />
-    <div class="buttons">
-      <button (click)="closeAccessModal()">გაუქმება</button>
-      <button (click)="confirmAccess()">შესვლა</button>
+  <div class="modal-box access-modal">
+    <div class="access-hero">
+      <h2>{{ 'access.title' | t }}</h2>
+      <button type="button" class="close-x" (click)="closeAccessModal()">✕</button>
+    </div>
+    <div class="access-body">
+      <input
+        type="password"
+        [(ngModel)]="passwordInput"
+        [placeholder]="'access.passwordPlaceholder' | t"
+      />
+      <div class="buttons">
+        <button type="button" class="btn-cancel" (click)="closeAccessModal()">
+          {{ 'access.cancel' | t }}
+        </button>
+        <button type="button" class="btn-enter" (click)="confirmAccess()">
+          {{ 'access.enter' | t }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

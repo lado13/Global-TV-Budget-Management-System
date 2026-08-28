@@ -1,77 +1,59 @@
 <div class="container main-wrapper">
 
-  <div class="add-card shadow-sm">
-    <div class="add-form">
-      <div class="field">
-        <label>მაღაზიის სახელი</label>
-        <input type="text" [(ngModel)]="newMerchant.name" placeholder="დაამატე ახალი მაღაზია...">
-      </div>
-      <div class="field">
-        <label>იკონი</label>
-        <div class="image-upload">
-          <label class="file-pick-btn">
-            <input type="file" accept="image/*" (change)="onNewIconSelected($event)" hidden>
-            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
-          </label>
-          <button type="button" class="clear-img-btn" *ngIf="newMerchant.iconUrl" (click)="clearNewIcon()">წაშლა</button>
-        </div>
-        <img *ngIf="newMerchant.iconUrl" class="image-preview" [src]="newMerchant.iconUrl" alt="preview">
-      </div>
-      <button class="btn-add" type="button" (click)="addMerchant()" [disabled]="isUploadingImage">
-        <span class="icon">+</span> მაღაზიის დამატება
-      </button>
-    </div>
+  <div class="header-section">
+    <h2 class="page-title">{{ 'merchant.title' | t }}</h2>
+    <button type="button" class="btn-add-main" (click)="openCreateModal()">
+      <span class="icon">+</span>
+      {{ 'merchant.add' | t }}
+    </button>
   </div>
 
-  <div class="table-container card shadow">
+  <div class="table-container card">
+    <p class="card-title">{{ 'merchant.list' | t }}</p>
     @if (merchants$ | async; as list) {
     <table class="custom-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>მაღაზიები</th>
-          <th>დამატების თარიღი</th>
-          <th>ბოლო განახლება</th>
-          <th class="text-end">მოქმედება</th>
+          <th>{{ 'common.id' | t }}</th>
+          <th>{{ 'merchant.col' | t }}</th>
+          <th>{{ 'common.createdAt' | t }}</th>
+          <th>{{ 'common.updatedAt' | t }}</th>
+          <th class="text-end">{{ 'common.actions' | t }}</th>
         </tr>
       </thead>
       <tbody>
         @for (m of list; track m.id) {
         <tr class="budget-row">
           <td><span class="id-badge">#{{ m.id }}</span></td>
-          <td><strong class="item-name text-light">
-            <img class="merchant-icon" [src]="iconSrc(m)" [alt]="m.name">{{ m.name }}</strong></td>
-
           <td>
-            <div class="timestamps text-white">
-              {{ m.createAt | date:'dd.MM.yyyy HH:mm' }}
-            </div>
+            <strong class="item-name">
+              <img class="merchant-icon" [src]="iconSrc(m)" [alt]="m.name">{{ m.name }}
+            </strong>
           </td>
-
+          <td>
+            <div class="timestamps">{{ m.createAt | date:'dd.MM.yyyy HH:mm' }}</div>
+          </td>
           <td>
             <div class="timestamps">
               @if (m.updateAt && m.updateAt !== m.createAt) {
-              <span class="text-white">
-                {{ m.updateAt | date:'dd.MM.yyyy HH:mm' }}
-              </span>
+              <span>{{ m.updateAt | date:'dd.MM.yyyy HH:mm' }}</span>
               } @else {
-              <span class="text-muted" style="opacity: 0.5;">- არ განახლებულა -</span>
+              <span class="text-muted">—</span>
               }
             </div>
           </td>
-
           <td class="actions">
-            <button class="btn-edit-icon" title="Edit" (click)="onEdit(m)">
+            <button type="button" class="btn-edit-icon" [title]="'common.edit' | t" (click)="onEdit(m)">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button class="btn-delete-icon" title="Delete" (click)="onDelete(m)">
-              <i class="fa-solid fa-trash-can"></i>
+            <button type="button" class="btn-delete-icon" [title]="'common.delete' | t" (click)="onDelete(m)">
+              <i class="fa-solid fa-trash-can" style="color: #dc2626;"></i>
             </button>
           </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="5" class="no-data">მაღაზიები არ მოიძებნა.</td>
+          <td colspan="5" class="no-data">{{ 'merchant.empty' | t }}</td>
         </tr>
         }
       </tbody>
@@ -79,38 +61,76 @@
     } @else {
     <div class="loader">
       <div class="spinner"></div>
-      <p>Loading data...</p>
+      <p>{{ 'common.loading' | t }}</p>
     </div>
     }
   </div>
 
-  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Edit Merchant</h3>
-        <button class="close-x" (click)="closeModal()">✕</button>
+        <h3>{{ 'merchant.new' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeCreateModal()">✕</button>
       </div>
 
       <div class="field">
-        <label>Merchant Name</label>
-        <input #updatedMName type="text" [value]="selectedMerchant?.name" placeholder="Enter name">
+        <label>{{ 'merchant.name' | t }}</label>
+        <input type="text" [(ngModel)]="newMerchant.name" [placeholder]="'merchant.namePlaceholder' | t">
+      </div>
+      <div class="field">
+        <label>{{ 'common.icon' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onNewIconSelected($event)" hidden>
+            {{ isUploadingImage ? ('common.uploading' | t) : ('common.chooseImage' | t) }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="newMerchant.iconUrl" (click)="clearNewIcon()">
+            {{ 'common.delete' | t }}
+          </button>
+        </div>
+        <img *ngIf="newMerchant.iconUrl" class="image-preview" [src]="newMerchant.iconUrl" alt="preview">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeCreateModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="addMerchant()" [disabled]="isUploadingImage">
+          {{ 'common.save' | t }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'merchant.edit' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeModal()">✕</button>
       </div>
 
       <div class="field">
-        <label>Icon</label>
+        <label>{{ 'merchant.name' | t }}</label>
+        <input #updatedMName type="text" [value]="selectedMerchant?.name" [placeholder]="'common.enterName' | t">
+      </div>
+
+      <div class="field">
+        <label>{{ 'common.icon' | t }}</label>
         <div class="image-upload">
           <label class="file-pick-btn">
             <input type="file" accept="image/*" (change)="onEditIconSelected($event)" hidden>
-            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+            {{ isUploadingImage ? ('common.uploading' | t) : ('common.chooseImage' | t) }}
           </label>
-          <button type="button" class="clear-img-btn" *ngIf="editIconUrl" (click)="clearEditIcon()">წაშლა</button>
+          <button type="button" class="clear-img-btn" *ngIf="editIconUrl" (click)="clearEditIcon()">
+            {{ 'common.delete' | t }}
+          </button>
         </div>
         <img *ngIf="editIconUrl" class="image-preview" [src]="editIconUrl" alt="preview">
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" (click)="closeModal()">Cancel</button>
-        <button class="btn-save" (click)="saveMerchantEdit(updatedMName.value)" [disabled]="isUploadingImage">Save</button>
+        <button type="button" class="btn-cancel" (click)="closeModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="saveMerchantEdit(updatedMName.value)" [disabled]="isUploadingImage">
+          {{ 'common.save' | t }}
+        </button>
       </div>
     </div>
   </div>

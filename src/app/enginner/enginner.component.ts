@@ -6,16 +6,19 @@ import { Enginner } from '../model/enginner';
 import { EngineerProfile } from '../model/engineer-profile';
 import { NamedEntityListBase } from '../shared/base/named-entity-list.base';
 import { DEFAULT_AVATAR } from '../shared/constants/app.constants';
+import { TranslatePipe } from '../shared/i18n/translate.pipe';
+import { LanguageService } from '../shared/i18n/language.service';
 
 @Component({
   selector: 'app-enginner',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './enginner.component.html',
   styleUrl: './enginner.component.scss'
 })
 export class EnginnerComponent extends NamedEntityListBase<Enginner> {
   protected readonly entityService = inject(EnginnerService);
+  private readonly lang = inject(LanguageService);
 
   get engineers$() {
     return this.items$;
@@ -61,7 +64,20 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
   }
 
   protected getDeleteConfirmMessage(eng: Enginner): string {
-    return `წავშალოთ ${eng.name}?`;
+    return this.lang.t('engineer.confirmDelete', { name: eng.name });
+  }
+
+  protected override resetCreateForm(): void {
+    this.clearNewImage();
+    this.newEngineer = {
+      name: '',
+      imageUrl: '',
+      phone: '',
+      email: '',
+      position: '',
+      description: ''
+    };
+    this.isUploadingImage = false;
   }
 
   onNewImageSelected(event: Event): void {
@@ -70,7 +86,7 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      alert(this.lang.t('common.pickImageFile'));
       input.value = '';
       return;
     }
@@ -88,7 +104,7 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('აირჩიე სურათის ფაილი (jpg, png, webp...)');
+      alert(this.lang.t('common.pickImageFile'));
       input.value = '';
       return;
     }
@@ -138,6 +154,7 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
           description: ''
         };
         this.isUploadingImage = false;
+        this.closeCreateModal();
       },
       error: (err) => {
         this.isUploadingImage = false;
@@ -153,13 +170,15 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
             position: '',
             description: ''
           };
+          this.closeCreateModal();
           alert(
-            'ინჟინერი დაემატა, მაგრამ სურათი/პროფილი ვერ შეინახა.\n' +
-              msg.replace('PROFILE_SAVE_FAILED:', '')
+            this.lang.t('engineer.profileSavePartial', {
+              detail: msg.replace('PROFILE_SAVE_FAILED:', '')
+            })
           );
           return;
         }
-        alert('ინჟინრის დამატება ვერ მოხერხდა');
+        alert(this.lang.t('engineer.addFailed'));
       }
     });
   }
@@ -255,7 +274,7 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
           next: () => this.closeModal(),
           error: (err) => {
             console.error('Error saving profile:', err);
-            alert('ინჟინერი შენახულია, მაგრამ პროფილი ვერ შეინახა');
+            alert(this.lang.t('engineer.savedProfileFailed'));
             this.closeModal();
           }
         });
@@ -271,7 +290,7 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
           error: (err) => {
             this.isUploadingImage = false;
             console.error(err);
-            alert('სურათის ატვირთვა ვერ მოხერხდა');
+            alert(this.lang.t('common.imageUploadFailed'));
           }
         });
       } else {

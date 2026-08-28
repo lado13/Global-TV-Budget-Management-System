@@ -20,11 +20,13 @@ import {
   DEFAULT_ICON,
   DEFAULT_PAGE_SIZE
 } from '../shared/constants/app.constants';
+import { TranslatePipe } from '../shared/i18n/translate.pipe';
+import { LanguageService } from '../shared/i18n/language.service';
 
 @Component({
   selector: 'app-purchase-history',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TranslatePipe],
   templateUrl: './purchase-history.component.html',
   styleUrls: ['./purchase-history.component.scss']
 })
@@ -37,6 +39,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   private readonly productTypeService = inject(ProductTypeService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly lang = inject(LanguageService);
 
   private readonly subscriptions = new Subscription();
 
@@ -54,7 +57,11 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   isFormModalOpen = false;
 
   tempFiles: File[] = [];
+  tempPreviewUrls: string[] = [];
   searchTerm = '';
+
+  readonly defaultAvatar = DEFAULT_AVATAR;
+  readonly defaultIcon = DEFAULT_ICON;
 
   currentPage = 1;
   pageSize = DEFAULT_PAGE_SIZE;
@@ -76,7 +83,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
       buyerId: [null, Validators.required],
       porductTypeId: [null, Validators.required],
       amount: [0, [Validators.required, Validators.min(1)]],
-      checkIsThere: [false],
+      checkIsThere: [{ value: false, disabled: true }],
       additionalComment: ['']
     });
 
@@ -108,6 +115,20 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
 
   openProfilePreview(buyerId: number): void {
     const url = this.getProfileImage(buyerId);
+    if (url) {
+      this.previewImageUrl = url;
+    }
+  }
+
+  openMerchantPreview(merchantId: number): void {
+    const url = this.getMerchantIcon(merchantId);
+    if (url) {
+      this.previewImageUrl = url;
+    }
+  }
+
+  openProductTypePreview(productTypeId: number): void {
+    const url = this.getProductTypeIcon(productTypeId);
     if (url) {
       this.previewImageUrl = url;
     }
@@ -230,11 +251,16 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
     this.isSaving = true;
 
     try {
-      const formValue = this.form.value;
+      const formValue = this.form.getRawValue();
       const isEdit = !!formValue.id && formValue.id !== 0;
+      const hasUploadedFiles = this.tempFiles.length > 0;
+      // Receipt flag follows files: new uploads → yes; create without files → no;
+      // edit without new files keeps previous value.
+      const checkIsThere = hasUploadedFiles || (isEdit && !!formValue.checkIsThere);
 
       const payload: PurchaseHistory = {
         ...formValue,
+        checkIsThere,
         buyerName: this.getBuyerName(formValue.buyerId),
         merchantName: this.getMerchantName(formValue.merchantId),
         productTypeName: this.getProductTypeName(formValue.porductTypeId)
@@ -286,14 +312,24 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   }
 
   delete(p: PurchaseHistory): void {
-    if (!confirm('მართლა გინდა ამ შესყიდვის წაშლა?')) return;
+    if (!confirm(this.lang.t('purchase.confirmDelete'))) return;
 
     this.purchaseService.delete(p).subscribe();
   }
 
   onCreateFileSelect(event: Event): void {
     const input = event.target as HTMLInputElement;
+    this.clearTempPreviews();
     this.tempFiles = input.files ? Array.from(input.files) : [];
+    this.tempPreviewUrls = this.tempFiles.map((file) => URL.createObjectURL(file));
+    this.form.patchValue({ checkIsThere: this.tempFiles.length > 0 });
+  }
+
+  private clearTempPreviews(): void {
+    for (const url of this.tempPreviewUrls) {
+      URL.revokeObjectURL(url);
+    }
+    this.tempPreviewUrls = [];
   }
 
   openDetails(p: PurchaseHistory): void {
@@ -306,6 +342,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
     this.isModalOpen = false;
     this.selectedPurchase = null;
     this.files = [];
+    this.clearTempPreviews();
     this.tempFiles = [];
   }
 
@@ -315,7 +352,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
 
   deleteFile(file: Attachment): void {
     if (!this.selectedPurchase) return;
-    if (!confirm('ნამდვილად გინდა ამ ქვითრის წაშლა?')) return;
+    if (!confirm(this.lang.t('purchase.confirmDeleteReceipt'))) return;
 
     const purchaseId = this.selectedPurchase.id;
 
@@ -357,18 +394,22 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
       additionalComment: ''
     });
 
+    this.clearTempPreviews();
     this.tempFiles = [];
     this.isFormModalOpen = true;
   }
 
   edit(p: PurchaseHistory): void {
     this.form.patchValue(p);
+    this.clearTempPreviews();
     this.tempFiles = [];
     this.isFormModalOpen = true;
   }
 
   closeFormModal(): void {
     this.isFormModalOpen = false;
+    this.clearTempPreviews();
+    this.tempFiles = [];
   }
 
   getMerchantIcon(id: number): string {

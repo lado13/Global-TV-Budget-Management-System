@@ -1,100 +1,60 @@
 <div class="container main-wrapper">
 
-  <div class="add-card shadow-sm">
-    <div class="add-form">
-      <div class="field">
-        <label>სახელი და გვარი</label>
-        <input type="text" [(ngModel)]="newEngineer.name" placeholder="ჩაწერე ინჟინრის სახელი და გვარი...">
-      </div>
-
-      <div class="field">
-        <label>პროფილის სურათი <span class="optional">(არასავალდებულო)</span></label>
-        <div class="image-upload">
-          <label class="file-pick-btn">
-            <input type="file" accept="image/*" (change)="onNewImageSelected($event)" hidden>
-            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
-          </label>
-          <button type="button" class="clear-img-btn" *ngIf="newEngineer.imageUrl" (click)="clearNewImage()">წაშლა</button>
-        </div>
-        <img *ngIf="newEngineer.imageUrl" class="image-preview" [src]="newEngineer.imageUrl" alt="preview">
-      </div>
-
-      <div class="field-row">
-        <div class="field">
-          <label>ტელეფონი <span class="optional">(არასავალდებულო)</span></label>
-          <input type="text" [(ngModel)]="newEngineer.phone" placeholder="ტელეფონი">
-        </div>
-        <div class="field">
-          <label>ელფოსტა <span class="optional">(არასავალდებულო)</span></label>
-          <input type="email" [(ngModel)]="newEngineer.email" placeholder="email@example.com">
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>პოზიცია <span class="optional">(არასავალდებულო)</span></label>
-          <input type="text" [(ngModel)]="newEngineer.position" placeholder="მაგ. Duty Engineer">
-        </div>
-        <div class="field">
-          <label>აღწერა <span class="optional">(არასავალდებულო)</span></label>
-          <input type="text" [(ngModel)]="newEngineer.description" placeholder="მოკლე აღწერა">
-        </div>
-      </div>
-      <button class="btn-add" type="button" (click)="addNew()" [disabled]="isUploadingImage">
-        <span class="icon">+</span> დამატება
-      </button>
-    </div>
+  <div class="header-section">
+    <h2 class="page-title">{{ 'engineer.title' | t }}</h2>
+    <button type="button" class="btn-add-main" (click)="openCreateModal()">
+      <span class="icon">+</span>
+      {{ 'engineer.add' | t }}
+    </button>
   </div>
 
-  <div class="table-container card shadow">
+  <div class="table-container card">
+    <p class="card-title">{{ 'engineer.list' | t }}</p>
     @if (engineers$ | async; as list) {
     <table class="custom-table">
       <thead>
         <tr>
-          <th class="text-dark">ID</th>
-          <th class="text-dark">სახელი</th>
-          <th class="text-dark">დამატების თარიღი</th>
-          <th class="text-dark">ბოლო განახლება</th>
-          <th class="text-end text-dark">მოქმედება</th>
+          <th>{{ 'common.id' | t }}</th>
+          <th>{{ 'common.name' | t }}</th>
+          <th>{{ 'common.createdAt' | t }}</th>
+          <th>{{ 'common.updatedAt' | t }}</th>
+          <th class="text-end">{{ 'common.actions' | t }}</th>
         </tr>
       </thead>
       <tbody>
         @for (eng of list; track eng.id) {
         <tr class="budget-row">
           <td><span class="id-badge">#{{ eng.id }}</span></td>
-          <td><strong class="eng-name">
-              <img [src]="getProfileImage(eng.id)" alt="{{ eng.name }}" class="merchant-icon">{{ eng.name
-              }}</strong></td>
-
           <td>
-            <div class="timestamps text-white">
-              {{ eng.createAt | date:'dd.MM.yyyy HH:mm' }}
-            </div>
+            <strong class="eng-name">
+              <img [src]="getProfileImage(eng.id)" [alt]="eng.name" class="merchant-icon">
+              {{ eng.name }}
+            </strong>
           </td>
-
+          <td>
+            <div class="timestamps">{{ eng.createAt | date:'dd.MM.yyyy HH:mm' }}</div>
+          </td>
           <td>
             <div class="timestamps">
               @if (eng.updateAt && eng.updateAt !== eng.createAt) {
-              <span class="text-white">
-                {{ eng.updateAt | date:'dd.MM.yyyy HH:mm' }}
-              </span>
+              <span>{{ eng.updateAt | date:'dd.MM.yyyy HH:mm' }}</span>
               } @else {
-              <span class="text-muted" style="opacity: 0.5;">- არ განახლებულა -</span>
+              <span class="text-muted">—</span>
               }
             </div>
           </td>
-
           <td class="actions">
-            <button class="btn-edit-icon" (click)="edit(eng)" title="რედაქტირება">
-              <i class="fa-solid fa-pen-to-square" style="color: rgb(159, 160, 170);"></i>
+            <button class="btn-edit-icon" type="button" (click)="edit(eng)" [title]="'common.edit' | t">
+              <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button class="btn-delete-icon" title="წაშლა" (click)="remove(eng)">
-              <i class="fa-regular fa-trash-can" style="color: rgb(252, 21, 0);"></i>
+            <button class="btn-delete-icon" type="button" [title]="'common.delete' | t" (click)="remove(eng)">
+              <i class="fa-regular fa-trash-can" style="color: #dc2626;"></i>
             </button>
           </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="5" class="no-data">მონაცემები არ მოიძებნა.</td>
+          <td colspan="5" class="no-data">{{ 'common.noData' | t }}</td>
         </tr>
         }
       </tbody>
@@ -102,58 +62,118 @@
     } @else {
     <div class="loader">
       <div class="spinner"></div>
-      <p>უკავშირდება სერვერს...</p>
+      <p>{{ 'common.loading' | t }}</p>
     </div>
     }
   </div>
 
-  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>ინჟინრის რედაქტირება</h3>
-        <button class="close-x" (click)="closeModal()">✕</button>
+        <h3>{{ 'engineer.new' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeCreateModal()">✕</button>
+      </div>
+
+      <div class="add-form">
+        <div class="field">
+          <label>{{ 'engineer.fullName' | t }}</label>
+          <input type="text" [(ngModel)]="newEngineer.name" [placeholder]="'engineer.namePlaceholder' | t">
+        </div>
+
+        <div class="field">
+          <label>{{ 'engineer.profileImage' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+          <div class="image-upload">
+            <label class="file-pick-btn">
+              <input type="file" accept="image/*" (change)="onNewImageSelected($event)" hidden>
+              {{ isUploadingImage ? ('common.uploading' | t) : ('common.chooseImage' | t) }}
+            </label>
+            <button type="button" class="clear-img-btn" *ngIf="newEngineer.imageUrl" (click)="clearNewImage()">
+              {{ 'common.delete' | t }}
+            </button>
+          </div>
+          <img *ngIf="newEngineer.imageUrl" class="image-preview" [src]="newEngineer.imageUrl" alt="preview">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>{{ 'common.phone' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+            <input type="text" [(ngModel)]="newEngineer.phone" [placeholder]="'common.phone' | t">
+          </div>
+          <div class="field">
+            <label>{{ 'common.email' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+            <input type="email" [(ngModel)]="newEngineer.email" placeholder="email@example.com">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>{{ 'common.position' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+            <input type="text" [(ngModel)]="newEngineer.position" [placeholder]="'engineer.positionExample' | t">
+          </div>
+          <div class="field">
+            <label>{{ 'common.description' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+            <input type="text" [(ngModel)]="newEngineer.description" [placeholder]="'engineer.descPlaceholder' | t">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeCreateModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="addNew()" [disabled]="isUploadingImage">{{ 'common.save' | t }}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'engineer.edit' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeModal()">✕</button>
       </div>
 
       <div class="field">
-        <label>სახელი და გვარი</label>
-        <input #updatedName type="text" [value]="selectedEngineer?.name" placeholder="შეიყვანეთ სახელი">
+        <label>{{ 'engineer.fullName' | t }}</label>
+        <input #updatedName type="text" [value]="selectedEngineer?.name" [placeholder]="'common.enterName' | t">
       </div>
 
       <div class="field">
-        <label>პროფილის სურათი</label>
+        <label>{{ 'engineer.profileImage' | t }}</label>
         <div class="image-upload">
           <label class="file-pick-btn">
             <input type="file" accept="image/*" (change)="onEditImageSelected($event)" hidden>
-            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+            {{ isUploadingImage ? ('common.uploading' | t) : ('common.chooseImage' | t) }}
           </label>
-          <button type="button" class="clear-img-btn" *ngIf="editProfile.imageUrl" (click)="clearEditImage()">წაშლა</button>
+          <button type="button" class="clear-img-btn" *ngIf="editProfile.imageUrl" (click)="clearEditImage()">
+            {{ 'common.delete' | t }}
+          </button>
         </div>
         <img *ngIf="editProfile.imageUrl" class="image-preview" [src]="editProfile.imageUrl" alt="preview">
       </div>
 
       <div class="field">
-        <label>ტელეფონი</label>
-        <input type="text" [(ngModel)]="editProfile.phone" placeholder="ტელეფონი">
+        <label>{{ 'common.phone' | t }}</label>
+        <input type="text" [(ngModel)]="editProfile.phone" [placeholder]="'common.phone' | t">
       </div>
 
       <div class="field">
-        <label>ელფოსტა</label>
+        <label>{{ 'common.email' | t }}</label>
         <input type="email" [(ngModel)]="editProfile.email" placeholder="email@example.com">
       </div>
 
       <div class="field">
-        <label>პოზიცია</label>
-        <input type="text" [(ngModel)]="editProfile.position" placeholder="პოზიცია">
+        <label>{{ 'common.position' | t }}</label>
+        <input type="text" [(ngModel)]="editProfile.position" [placeholder]="'common.position' | t">
       </div>
 
       <div class="field">
-        <label>აღწერა</label>
-        <input type="text" [(ngModel)]="editProfile.description" placeholder="აღწერა">
+        <label>{{ 'common.description' | t }}</label>
+        <input type="text" [(ngModel)]="editProfile.description" [placeholder]="'common.description' | t">
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
-        <button class="btn-save" (click)="saveEdit(updatedName.value)" [disabled]="isUploadingImage">შენახვა</button>
+        <button type="button" class="btn-cancel" (click)="closeModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="saveEdit(updatedName.value)" [disabled]="isUploadingImage">
+          {{ 'common.save' | t }}
+        </button>
       </div>
     </div>
   </div>

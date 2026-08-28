@@ -1,170 +1,268 @@
 <div class="container main-wrapper">
 
   <div class="header-section">
-
     <div class="search-bar">
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
-
-        <!-- <input type="text" placeholder="მოძებნე სახელით ან თანხით..." [(ngModel)]="searchTerm"
-          (input)="updatePagination()" /> -->
-        <input type="text" placeholder="მოძებნე სახელით ან თანხით..." [(ngModel)]="searchTerm"
-          (input)="updatePagination()" />
-
-        <button *ngIf="searchTerm" class="clear-btn" (click)="searchTerm=''; updatePagination()">
-          ✖
+        <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+        <input
+          type="search"
+          [placeholder]="'purchase.searchPlaceholder' | t"
+          [(ngModel)]="searchTerm"
+          (input)="updatePagination()"
+        />
+        <button
+          *ngIf="searchTerm"
+          type="button"
+          class="clear-btn"
+          [attr.aria-label]="'common.close' | t"
+          (click)="searchTerm=''; updatePagination()"
+        >
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </div>
 
-    <!-- <h2 class="page-title">შესყიდვები</h2> -->
-    <button (click)="openCreateModal()" class="btn-add-main">
+    <button type="button" (click)="openCreateModal()" class="btn-add-main">
       <span class="icon">+</span>
-      ახალი შესყიდვის დამატება
+      {{ 'purchase.add' | t }}
     </button>
-
   </div>
 
-  <div class="card table-card">
-    <p class="card-title">შესყიდვების ისტორია</p>
+  <div class="card table-card history-board">
+    <p class="card-title">{{ 'purchase.history' | t }}</p>
 
-    <div class="table-header">
-      <div class="h-cell">#ID</div>
-      <div class="h-cell">მყიდველი</div>
-      <div class="h-cell">მაღაზია</div>
-      <div class="h-cell">პროდუქტის ტიპი</div>
-      <div class="h-cell">თანხა</div>
-      <div class="h-cell">თარიღი</div>
-      <div class="h-cell">ჩეკი</div>
-      <div class="h-cell text-end">მოქმედება</div>
-    </div>
-
-    <div *ngFor="let p of pagedPurchases" class="row border history-item align-items-center">
-      <div class="col-content">
-        <div class="id-box history-value">#{{ p.id }}</div>
-        <div class="text-bold history-value">
-
-          <img class="merchant-icon rounded-circle engineer-avatar"
-            [src]="getProfileImage(p.buyerId)"
-            [alt]="getBuyerName(p.buyerId, p)"
-            title="სრული სურათი"
-            (click)="openProfilePreview(p.buyerId); $event.stopPropagation()">
-          
-          {{ getBuyerName(p.buyerId, p) }}</div>
-        <div class="history-value">
-          <img class="merchant-icon" [src]="getMerchantIcon(p.merchantId)" [alt]="getMerchantName(p.merchantId, p)">
-          {{ getMerchantName(p.merchantId, p) }}
+    <div class="history-list">
+      <div *ngFor="let p of pagedPurchases" class="history-item purchase-card">
+        <div class="purchase-card-top">
+          <div class="purchase-card-top-row">
+            <span class="id-box">#{{ p.id }}</span>
+            <span
+              class="check-pill"
+              [class.yes]="p.checkIsThere"
+              [class.no]="!p.checkIsThere"
+            >
+              <i class="fa-solid" [class.fa-check]="p.checkIsThere" [class.fa-xmark]="!p.checkIsThere"></i>
+              {{ p.checkIsThere ? ('purchase.checkYes' | t) : ('purchase.checkNo' | t) }}
+            </span>
+          </div>
+          <div class="purchase-amount">{{ p.amount | currency:'₾ ' }}</div>
+          <div class="purchase-card-date">
+            <i class="fa-regular fa-calendar"></i>
+            {{ p.purchaseDate | date:'dd.MM.yyyy' }}
+          </div>
         </div>
-        <div class="history-value">
-          <img class="merchant-icon" [src]="getProductTypeIcon(p.porductTypeId)"
-            [alt]="getProductTypeName(p.porductTypeId, p)">{{ getProductTypeName(p.porductTypeId, p) }}
+
+        <div class="purchase-card-body">
+          <div class="history-value cell-with-media" [attr.data-label]="'purchase.buyer' | t">
+            <img
+              class="media-thumb"
+              [src]="getProfileImage(p.buyerId)"
+              [alt]="getBuyerName(p.buyerId, p)"
+              [title]="'common.fullImage' | t"
+              (click)="openProfilePreview(p.buyerId); $event.stopPropagation()"
+            >
+            <span class="cell-text">{{ getBuyerName(p.buyerId, p) }}</span>
+          </div>
+
+          <div class="history-value cell-with-media" [attr.data-label]="'purchase.merchant' | t">
+            <img
+              class="media-thumb"
+              [src]="getMerchantIcon(p.merchantId)"
+              [alt]="getMerchantName(p.merchantId, p)"
+              [title]="'common.fullImage' | t"
+              (click)="openMerchantPreview(p.merchantId); $event.stopPropagation()"
+            >
+            <span class="cell-text">{{ getMerchantName(p.merchantId, p) }}</span>
+          </div>
+
+          <div class="history-value cell-with-media" [attr.data-label]="'purchase.productType' | t">
+            <img
+              class="media-thumb"
+              [src]="getProductTypeIcon(p.porductTypeId)"
+              [alt]="getProductTypeName(p.porductTypeId, p)"
+              [title]="'common.fullImage' | t"
+              (click)="openProductTypePreview(p.porductTypeId); $event.stopPropagation()"
+            >
+            <span class="cell-text">{{ getProductTypeName(p.porductTypeId, p) }}</span>
+          </div>
+
+          <div
+            class="check-cell history-value"
+            [attr.data-label]="'purchase.check' | t"
+            *ngIf="checkThumbById[p.id] as checkUrl"
+          >
+            <img
+              class="media-thumb check-thumb"
+              [src]="checkUrl"
+              [alt]="'purchase.check' | t"
+              [title]="'purchase.fullCheck' | t"
+              loading="lazy"
+              (click)="openCheckPreview(p.id); $event.stopPropagation()"
+            >
+          </div>
         </div>
-        <div class="amount-text history-value">{{ p.amount | currency:'₾ ' }}</div>
-        <div class="purchase-date history-value">{{ p.purchaseDate | date:'dd.MM.yyyy' }}</div>
-        <div class="check-cell history-value">
-          <img *ngIf="checkThumbById[p.id] as checkUrl"
-            class="check-thumb"
-            [src]="checkUrl"
-            alt="ჩეკი"
-            title="სრული ჩეკი"
-            loading="lazy"
-            (click)="openCheckPreview(p.id); $event.stopPropagation()">
 
-          <span [class.no]="!p.checkIsThere">
-            <i *ngIf="p.checkIsThere" class="fa-solid fa-check check" style="color: rgb(0, 252, 19);"></i>
-            <i *ngIf="!p.checkIsThere" class="fa-solid fa-x check" style="color: rgb(252, 21, 0);"></i>
-          </span>
+        <div class="col-actions">
+          <button type="button" class="btn-view" [title]="'common.view' | t" (click)="openDetails(p)">
+            <i class="fa-solid fa-eye"></i>
+            <span class="action-label">{{ 'common.view' | t }}</span>
+          </button>
+          <button type="button" class="btn-edit" [title]="'common.edit' | t" (click)="edit(p)">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span class="action-label">{{ 'common.edit' | t }}</span>
+          </button>
+          <button type="button" class="btn-delete" [title]="'common.delete' | t" (click)="delete(p)">
+            <i class="fa-solid fa-trash-can"></i>
+            <span class="action-label">{{ 'common.delete' | t }}</span>
+          </button>
         </div>
-      </div>
-
-      <div class="col-actions">
-        <button class="btn-view" title="ნახვა" (click)="openDetails(p)">
-          <i class="fa-solid fa-eye" style="color: #aaaaaa;"></i>
-        </button>
-
-        <button class="btn-delete" title="წაშლა" (click)="delete(p)">
-          <i class="fa-solid fa-trash-can" style="color: #e9371f;"></i>
-        </button>
-        <button class="btn-edit" title="რედაქტირება" (click)="edit(p)">
-          <i class="fa-solid fa-pen-to-square" style="color: #aaaaaa;"></i>
-        </button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" *ngIf="isFormModalOpen" (click)="closeFormModal()">
     <div class="modal-box form-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ form.get('id')?.value ? 'რედაქტირება' : 'ახალი შესყიდვა' }}</h3>
-        <button class="close-x" (click)="closeFormModal()">✕</button>
+      <div class="view-hero form-hero">
+        <div class="view-hero-top">
+          <div class="view-hero-meta">
+            <span class="view-id" *ngIf="form.get('id')?.value">#{{ form.get('id')?.value }}</span>
+            <span
+              class="view-check-badge"
+              [class.yes]="form.get('checkIsThere')?.value"
+              [class.no]="!form.get('checkIsThere')?.value"
+            >
+              <i
+                class="fa-solid"
+                [class.fa-check]="form.get('checkIsThere')?.value"
+                [class.fa-xmark]="!form.get('checkIsThere')?.value"
+              ></i>
+              {{ form.get('checkIsThere')?.value ? ('purchase.checkYes' | t) : ('purchase.checkNo' | t) }}
+            </span>
+          </div>
+          <button type="button" class="close-x light" (click)="closeFormModal()">✕</button>
+        </div>
+
+        <p class="view-hero-label">
+          {{ form.get('id')?.value ? ('purchase.edit' | t) : ('purchase.new' | t) }}
+        </p>
+        <h2 class="view-amount">
+          {{ (form.get('amount')?.value || 0) | currency:'₾ ' }}
+        </h2>
+        <p class="view-date" *ngIf="form.get('purchaseDate')?.value; else pickDateTpl">
+          <i class="fa-regular fa-calendar"></i>
+          {{ form.get('purchaseDate')?.value | date:'dd.MM.yyyy' }}
+        </p>
+        <ng-template #pickDateTpl>
+          <p class="view-date muted">
+            <i class="fa-regular fa-calendar"></i>
+            {{ 'common.date' | t }}
+          </p>
+        </ng-template>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()" class="modern-form">
-        <div class="form-grid">
-          <div class="field">
-            <label>თარიღი</label>
+      <form [formGroup]="form" (ngSubmit)="save()" class="modern-form form-body">
+        <div class="form-section-grid">
+          <div class="field party-like">
+            <label>{{ 'common.date' | t }}</label>
             <input class="modal-field" type="date" formControlName="purchaseDate" />
           </div>
 
-          <div class="field">
-            <label>თანხა</label>
+          <div class="field party-like">
+            <label>{{ 'common.amount' | t }}</label>
             <input class="modal-field" type="number" formControlName="amount" placeholder="0.00" />
           </div>
+        </div>
 
-          <div class="field">
-            <label>ინჟინერი</label>
-            <select class="modal-field" formControlName="buyerId">
-              <option [ngValue]="null">აირჩიე ინჟინერი</option>
-              <option *ngFor="let e of engineers" [value]="e.id">{{ e.name }}</option>
-            </select>
+        <div class="party-grid form-party-grid">
+          <div class="party-card form-party">
+            <img
+              class="party-avatar"
+              [src]="form.get('buyerId')?.value ? getProfileImage(+form.get('buyerId')?.value) : defaultAvatar"
+              alt="buyer"
+            >
+            <div class="party-info field">
+              <label class="party-label">{{ 'purchase.engineer' | t }}</label>
+              <select class="modal-field" formControlName="buyerId">
+                <option [ngValue]="null">{{ 'purchase.selectEngineer' | t }}</option>
+                <option *ngFor="let e of engineers" [value]="e.id">{{ e.name }}</option>
+              </select>
+            </div>
           </div>
 
-          <div class="field">
-            <label>მაღაზია</label>
-            <select class="modal-field" formControlName="merchantId">
-              <option [ngValue]="null">აირჩიე მაღაზია</option>
-              <option *ngFor="let m of merchants" [value]="m.id">{{ m.name }}</option>
-            </select>
+          <div class="party-card form-party">
+            <img
+              class="party-avatar"
+              [src]="form.get('merchantId')?.value ? getMerchantIcon(+form.get('merchantId')?.value) : defaultIcon"
+              alt="merchant"
+            >
+            <div class="party-info field">
+              <label class="party-label">{{ 'purchase.merchant' | t }}</label>
+              <select class="modal-field" formControlName="merchantId">
+                <option [ngValue]="null">{{ 'purchase.selectMerchant' | t }}</option>
+                <option *ngFor="let m of merchants" [value]="m.id">{{ m.name }}</option>
+              </select>
+            </div>
           </div>
 
-          <div class="field full-width">
-            <label>პროდუქტის ტიპი</label>
-            <select class="modal-field" formControlName="porductTypeId">
-              <option [ngValue]="null">აირჩიე პროდუქტის ტიპი</option>
-              <option *ngFor="let p of productTypes" [value]="p.id">{{ p.name }}</option>
-            </select>
-          </div>
-
-          <div class="field full-width">
-            <label>კომენტარი</label>
-            <textarea class="modal-field" formControlName="additionalComment"
-              placeholder="დაამატეთ შენიშვნა..."></textarea>
+          <div class="party-card form-party">
+            <img
+              class="party-avatar"
+              [src]="form.get('porductTypeId')?.value ? getProductTypeIcon(+form.get('porductTypeId')?.value) : defaultIcon"
+              alt="type"
+            >
+            <div class="party-info field">
+              <label class="party-label">{{ 'purchase.productType' | t }}</label>
+              <select class="modal-field" formControlName="porductTypeId">
+                <option [ngValue]="null">{{ 'purchase.selectProductType' | t }}</option>
+                <option *ngFor="let p of productTypes" [value]="p.id">{{ p.name }}</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <div class="checkbox-field">
-          <input class="checkbox-slider" type="checkbox" formControlName="checkIsThere" id="checkSlider" />
-          <label for="checkSlider" class="slider-label">
-            {{ form.get('checkIsThere')?.value ? 'ჩეკი არის' : 'ჩეკი არ არის' }}
-          </label>
+        <div class="view-note form-note">
+          <label class="party-label">{{ 'purchase.comment' | t }}</label>
+          <textarea
+            class="modal-field"
+            formControlName="additionalComment"
+            [placeholder]="'purchase.commentPlaceholder' | t"
+          ></textarea>
         </div>
 
-        <div class="file-upload-section">
-          <h4>📁 ატვირთე ჩეკის სურათი</h4>
-          <label class="custom-file-upload">
-            <input class="modal-field" type="file" multiple (change)="onCreateFileSelect($event)" />
-            ფაილების არჩევა
-          </label>
-          <p class="file-count" *ngIf="tempFiles.length">არჩეულია {{ tempFiles.length }} ფაილი</p>
+        <div class="view-files-block">
+          <div class="view-files-head">
+            <h4>📁 {{ 'purchase.uploadCheck' | t }}</h4>
+            <span class="files-count" *ngIf="tempFiles.length">{{ tempFiles.length }}</span>
+          </div>
+
+          <div class="file-upload-section form-upload">
+            <label class="custom-file-upload">
+              <input type="file" multiple accept="image/*" (change)="onCreateFileSelect($event)" />
+              {{ 'purchase.chooseFiles' | t }}
+            </label>
+            <p class="file-count" *ngIf="tempFiles.length">
+              {{ 'purchase.filesSelected' | t:{ count: tempFiles.length } }}
+            </p>
+          </div>
+
+          <div class="files-container form-previews" *ngIf="tempPreviewUrls.length">
+            <div class="file-card" *ngFor="let url of tempPreviewUrls; let i = index">
+              <div class="file-preview">
+                <img [src]="url" [alt]="tempFiles[i]?.name || 'preview'" />
+              </div>
+              <div class="file-info">
+                <span class="file-name" [title]="tempFiles[i]?.name">{{ tempFiles[i]?.name }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="closeFormModal()">გაუქმება</button>
-
-
-          <button type="submit" class="btn-save" [disabled]="form.invalid || isSaving">
-
-            {{ isSaving ? 'იტვირთება...' : 'შენახვა' }}
+        <div class="modal-actions form-actions">
+          <button type="button" class="btn-cancel" (click)="closeFormModal()">
+            {{ 'common.cancel' | t }}
+          </button>
+          <button type="submit" class="btn-save view-close" [disabled]="form.invalid || isSaving">
+            {{ isSaving ? ('common.uploading' | t) : ('common.save' | t) }}
           </button>
         </div>
       </form>
@@ -173,72 +271,126 @@
 
   <div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
     <div class="modal-box view-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>შესყიდვის დეტალები</h3>
-        <button class="close-x" (click)="closeModal()">✕</button>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="label">ID</span>
-          <span class="value">#{{ selectedPurchase?.id }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">მყიდველი</span>
-          <span class="value">{{ getBuyerName(selectedPurchase?.buyerId!, selectedPurchase!) }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">მაღაზია</span>
-          <span class="value">{{ getMerchantName(selectedPurchase?.merchantId!, selectedPurchase!) }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">ტიპი</span>
-          <span class="value">{{ getProductTypeName(selectedPurchase?.porductTypeId!, selectedPurchase!) }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">თანხა</span>
-          <span class="value price">{{ selectedPurchase?.amount | currency:'₾ ' }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">თარიღი</span>
-          <span class="value">{{ selectedPurchase?.purchaseDate | date:'dd.MM.yyyy' }}</span>
-        </div>
-        <div class="info-item full-width" *ngIf="selectedPurchase?.additionalComment">
-          <span class="label">კომენტარი</span>
-          <span class="value note">{{ selectedPurchase?.additionalComment }}</span>
-        </div>
-      </div>
-
-      <hr class="modal-divider" />
-
-      <h4>მიბმული ფაილები</h4>
-      <div class="files-container">
-        <div class="file-card" *ngFor="let file of files || []">
-          <div class="file-preview" (click)="openImagePreview(file)">
-            <ng-container *ngIf="file?.fileType?.includes('image'); else docIcon">
-              <img [src]="getImage(file)" />
-              <div class="zoom-overlay">
-                <span>🔍</span>
-              </div>
-            </ng-container>
-            <ng-template #docIcon>
-              <div class="file-icon">📄</div>
-            </ng-template>
+      <div class="view-hero">
+        <div class="view-hero-top">
+          <div class="view-hero-meta">
+            <span class="view-id">#{{ selectedPurchase?.id }}</span>
+            <span
+              class="view-check-badge"
+              [class.yes]="selectedPurchase?.checkIsThere"
+              [class.no]="!selectedPurchase?.checkIsThere"
+            >
+              <i
+                class="fa-solid"
+                [class.fa-check]="selectedPurchase?.checkIsThere"
+                [class.fa-xmark]="!selectedPurchase?.checkIsThere"
+              ></i>
+              {{ selectedPurchase?.checkIsThere ? ('purchase.checkYes' | t) : ('purchase.checkNo' | t) }}
+            </span>
           </div>
-          <div class="file-info">
-            <span class="file-name">{{ file.fileName }}</span>
-            <div class="file-btns">
-              <button class="btn-mini-download" (click)="download(file)">Download</button>
-              <button class="btn-mini-delete" (click)="deleteFile(file)">Delete</button>
+          <button type="button" class="close-x light" (click)="closeModal()">✕</button>
+        </div>
+
+        <p class="view-hero-label">{{ 'purchase.details' | t }}</p>
+        <h2 class="view-amount">{{ selectedPurchase?.amount | currency:'₾ ' }}</h2>
+        <p class="view-date">
+          <i class="fa-regular fa-calendar"></i>
+          {{ selectedPurchase?.purchaseDate | date:'dd.MM.yyyy' }}
+        </p>
+      </div>
+
+      <div class="view-body">
+        <div class="party-grid">
+          <div class="party-card">
+            <img
+              class="party-avatar clickable"
+              [src]="getProfileImage(selectedPurchase?.buyerId!)"
+              [alt]="getBuyerName(selectedPurchase?.buyerId!, selectedPurchase!)"
+              (click)="openProfilePreview(selectedPurchase?.buyerId!)"
+            >
+            <div class="party-info">
+              <span class="party-label">{{ 'purchase.buyer' | t }}</span>
+              <span class="party-name">{{ getBuyerName(selectedPurchase?.buyerId!, selectedPurchase!) }}</span>
+            </div>
+          </div>
+
+          <div class="party-card">
+            <img
+              class="party-avatar clickable"
+              [src]="getMerchantIcon(selectedPurchase?.merchantId!)"
+              [alt]="getMerchantName(selectedPurchase?.merchantId!, selectedPurchase!)"
+              [title]="'common.fullImage' | t"
+              (click)="openMerchantPreview(selectedPurchase?.merchantId!)"
+            >
+            <div class="party-info">
+              <span class="party-label">{{ 'purchase.merchant' | t }}</span>
+              <span class="party-name">{{ getMerchantName(selectedPurchase?.merchantId!, selectedPurchase!) }}</span>
+            </div>
+          </div>
+
+          <div class="party-card">
+            <img
+              class="party-avatar clickable"
+              [src]="getProductTypeIcon(selectedPurchase?.porductTypeId!)"
+              [alt]="getProductTypeName(selectedPurchase?.porductTypeId!, selectedPurchase!)"
+              [title]="'common.fullImage' | t"
+              (click)="openProductTypePreview(selectedPurchase?.porductTypeId!)"
+            >
+            <div class="party-info">
+              <span class="party-label">{{ 'purchase.type' | t }}</span>
+              <span class="party-name">{{ getProductTypeName(selectedPurchase?.porductTypeId!, selectedPurchase!) }}</span>
             </div>
           </div>
         </div>
 
-        <p class="no-files" *ngIf="!files.length">ფაილი იტვირთება...</p>
-      </div>
+        <div class="view-note" *ngIf="selectedPurchase?.additionalComment">
+          <span class="party-label">{{ 'purchase.comment' | t }}</span>
+          <p>{{ selectedPurchase?.additionalComment }}</p>
+        </div>
 
-      <div class="modal-actions">
-        <button class="btn-save" (click)="closeModal()">დახურვა</button>
+        <div class="view-files-block">
+          <div class="view-files-head">
+            <h4>{{ 'purchase.attachedFiles' | t }}</h4>
+            <span class="files-count" *ngIf="files?.length">{{ files.length }}</span>
+          </div>
+
+          <div class="files-container" *ngIf="files?.length; else noFilesTpl">
+            <div class="file-card" *ngFor="let file of files">
+              <div class="file-preview" (click)="openImagePreview(file)">
+                <ng-container *ngIf="file?.fileType?.includes('image'); else docIcon">
+                  <img [src]="getImage(file)" [alt]="file.fileName" />
+                  <div class="zoom-overlay">
+                    <span>🔍</span>
+                  </div>
+                </ng-container>
+                <ng-template #docIcon>
+                  <div class="file-icon">📄</div>
+                </ng-template>
+              </div>
+              <div class="file-info">
+                <span class="file-name" [title]="file.fileName">{{ file.fileName }}</span>
+                <div class="file-btns">
+                  <button type="button" class="btn-mini-download" (click)="download(file)">
+                    {{ 'common.download' | t }}
+                  </button>
+                  <button type="button" class="btn-mini-delete" (click)="deleteFile(file)">
+                    {{ 'common.delete' | t }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noFilesTpl>
+            <p class="no-files">{{ 'purchase.filesLoading' | t }}</p>
+          </ng-template>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-save view-close" (click)="closeModal()">
+            {{ 'common.close' | t }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -251,7 +403,6 @@
   </div>
 
 </div>
-
 
 <div class="pagination-controls">
   <button (click)="prevPage()" [disabled]="currentPage === 1">

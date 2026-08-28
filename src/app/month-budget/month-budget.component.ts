@@ -4,17 +4,19 @@ import { MonthBudget } from '../model/month-budget';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { map } from 'rxjs/operators';
-import { getMonthName } from '../shared/constants/app.constants';
+import { TranslatePipe } from '../shared/i18n/translate.pipe';
+import { LanguageService } from '../shared/i18n/language.service';
 
 @Component({
   selector: 'app-month-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './month-budget.component.html',
   styleUrl: './month-budget.component.scss'
 })
 export class MonthBudgetComponent implements OnInit {
   private service = inject(MonthBudgetService);
+  private readonly lang = inject(LanguageService);
 
   budgets$ = this.service.budgets$.pipe(
     map((data) =>
@@ -37,10 +39,28 @@ export class MonthBudgetComponent implements OnInit {
   };
 
   isEditModalOpen = false;
+  isCreateModalOpen = false;
   selectedBudget: MonthBudget | null = null;
 
   ngOnInit(): void {
     this.service.load();
+  }
+
+  openCreateModal(): void {
+    this.newBudget = {
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+      budgetAmount: 0,
+      remainingFromPreviousMonth: 0,
+      spentAmount: 0,
+      remainingAmount: 0,
+      remainingBudget: 0
+    };
+    this.isCreateModalOpen = true;
+  }
+
+  closeCreateModal(): void {
+    this.isCreateModalOpen = false;
   }
 
   saveBudget(): void {
@@ -48,14 +68,15 @@ export class MonthBudgetComponent implements OnInit {
 
     this.service.create(this.newBudget).subscribe({
       next: () => {
-        this.newBudget.budgetAmount = 0;
-        this.newBudget.remainingFromPreviousMonth = 0;
+        this.closeCreateModal();
       },
       error: (err) => console.error('Error:', err)
     });
   }
 
-  getMonthName = getMonthName;
+  monthLabel(month: number): string {
+    return this.lang.monthName(month);
+  }
 
   onEdit(budget: MonthBudget): void {
     this.selectedBudget = { ...budget };
@@ -79,7 +100,11 @@ export class MonthBudgetComponent implements OnInit {
   removeBudget(budget: MonthBudget): void {
     if (
       confirm(
-        `წავშალოთ ბიუჯეტი: თარიღით ${budget.month}/${budget.year} თანხა ${budget.budgetAmount}₾?`
+        this.lang.t('budget.confirmDelete', {
+          month: budget.month,
+          year: budget.year,
+          amount: budget.budgetAmount
+        })
       )
     ) {
       this.service.delete(budget).subscribe();

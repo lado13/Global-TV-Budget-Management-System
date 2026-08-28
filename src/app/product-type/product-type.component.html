@@ -1,38 +1,24 @@
 <div class="container main-wrapper">
 
-  <div class="add-card shadow-sm">
-    <div class="add-form">
-      <div class="field">
-        <label>პროდუქციის დასახელება</label>
-        <input type="text" [(ngModel)]="newType.name" placeholder="დაამატე პროდუქციის დასახელება...">
-      </div>
-      <div class="field">
-        <label>იკონი <span class="optional">(არასავალდებულო)</span></label>
-        <div class="image-upload">
-          <label class="file-pick-btn">
-            <input type="file" accept="image/*" (change)="onNewIconSelected($event)" hidden>
-            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
-          </label>
-          <button type="button" class="clear-img-btn" *ngIf="newType.iconUrl" (click)="clearNewIcon()">წაშლა</button>
-        </div>
-        <img *ngIf="newType.iconUrl" class="image-preview" [src]="newType.iconUrl" alt="preview">
-      </div>
-      <button class="btn-add" type="button" (click)="addType()" [disabled]="isUploadingImage">
-        <span class="icon">+</span> დამატება
-      </button>
-    </div>
+  <div class="header-section">
+    <h2 class="page-title">{{ 'productType.title' | t }}</h2>
+    <button type="button" class="btn-add-main" (click)="openCreateModal()">
+      <span class="icon">+</span>
+      {{ 'productType.add' | t }}
+    </button>
   </div>
 
   <div class="table-container card">
+    <p class="card-title">{{ 'productType.list' | t }}</p>
     @if (types$ | async; as list) {
     <table class="custom-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>დასახელება</th>
-          <th>თარიღი (შექმნა)</th>
-          <th>თარიღი (განახლება)</th>
-          <th class="text-end">მოქმედება</th>
+          <th>{{ 'common.id' | t }}</th>
+          <th>{{ 'productType.nameCol' | t }}</th>
+          <th>{{ 'productType.createdCol' | t }}</th>
+          <th>{{ 'productType.updatedCol' | t }}</th>
+          <th class="text-end">{{ 'common.actions' | t }}</th>
         </tr>
       </thead>
       <tbody>
@@ -46,27 +32,25 @@
             </strong>
           </td>
           <td>
-            <strong class="text-light" *ngIf="item.createAt">
-              {{ item.createAt | date:'dd.MM.yyyy HH:mm' }}
-            </strong>
+            <span *ngIf="item.createAt">{{ item.createAt | date:'dd.MM.yyyy HH:mm' }}</span>
+            <span *ngIf="!item.createAt" class="text-muted">—</span>
           </td>
           <td>
-            <strong class="text-light" *ngIf="item.updateAt">
-              {{ item.updateAt | date:'dd.MM.yyyy HH:mm' }}
-            </strong>
+            <span *ngIf="item.updateAt">{{ item.updateAt | date:'dd.MM.yyyy HH:mm' }}</span>
+            <span *ngIf="!item.updateAt" class="text-muted">—</span>
           </td>
           <td class="actions">
-            <button class="btn-edit-icon" title="რედაქტირება" (click)="editType(item)">
+            <button type="button" class="btn-edit-icon" [title]="'common.edit' | t" (click)="editType(item)">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button class="btn-delete-icon" title="წაშლა" (click)="deleteType(item)">
-              <i class="fa-solid fa-trash-can"></i>
+            <button type="button" class="btn-delete-icon" [title]="'common.delete' | t" (click)="deleteType(item)">
+              <i class="fa-solid fa-trash-can" style="color: #dc2626;"></i>
             </button>
           </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="5" class="no-data">მონაცემები არ მოიძებნა.</td>
+          <td colspan="5" class="no-data">{{ 'common.noData' | t }}</td>
         </tr>
         }
       </tbody>
@@ -74,41 +58,79 @@
     } @else {
     <div class="loader">
       <div class="spinner"></div>
-      <p>იტვირთება მონაცემები...</p>
+      <p>{{ 'common.loading' | t }}</p>
     </div>
     }
   </div>
 
-  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>ტიპის რედაქტირება</h3>
-        <button class="close-x" (click)="closeModal()">✕</button>
+        <h3>{{ 'productType.new' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeCreateModal()">✕</button>
       </div>
 
       <div class="field">
-        <label>პროდუქტის ტიპის სახელი</label>
-        <input #updatedName type="text" [value]="selectedType?.name" placeholder="შეიყვანეთ დასახელება">
+        <label>{{ 'productType.name' | t }}</label>
+        <input type="text" [(ngModel)]="newType.name" [placeholder]="'productType.namePlaceholder' | t">
+      </div>
+      <div class="field">
+        <label>{{ 'common.icon' | t }} <span class="optional">{{ 'common.optional' | t }}</span></label>
+        <div class="image-upload">
+          <label class="file-pick-btn">
+            <input type="file" accept="image/*" (change)="onNewIconSelected($event)" hidden>
+            {{ isUploadingImage ? ('common.uploading' | t) : ('common.chooseImage' | t) }}
+          </label>
+          <button type="button" class="clear-img-btn" *ngIf="newType.iconUrl" (click)="clearNewIcon()">
+            {{ 'common.delete' | t }}
+          </button>
+        </div>
+        <img *ngIf="newType.iconUrl" class="image-preview" [src]="newType.iconUrl" alt="preview">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeCreateModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="addType()" [disabled]="isUploadingImage">
+          {{ 'common.save' | t }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeModal()">
+    <div class="modal-box form-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'productType.edit' | t }}</h3>
+        <button type="button" class="close-x" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="field">
+        <label>{{ 'productType.typeName' | t }}</label>
+        <input #updatedName type="text" [value]="selectedType?.name" [placeholder]="'productType.nameEditPlaceholder' | t">
         <small class="update-info" *ngIf="selectedType?.updateAt">
-          ბოლო ცვლილება: {{ selectedType?.updateAt | date:'dd.MM.yyyy HH:mm' }}
+          {{ 'common.lastChange' | t }} {{ selectedType?.updateAt | date:'dd.MM.yyyy HH:mm' }}
         </small>
       </div>
 
       <div class="field">
-        <label>იკონი</label>
+        <label>{{ 'common.icon' | t }}</label>
         <div class="image-upload">
           <label class="file-pick-btn">
             <input type="file" accept="image/*" (change)="onEditIconSelected($event)" hidden>
-            {{ isUploadingImage ? 'იტვირთება...' : 'აირჩიე სურათი' }}
+            {{ isUploadingImage ? ('common.uploading' | t) : ('common.chooseImage' | t) }}
           </label>
-          <button type="button" class="clear-img-btn" *ngIf="editIconUrl" (click)="clearEditIcon()">წაშლა</button>
+          <button type="button" class="clear-img-btn" *ngIf="editIconUrl" (click)="clearEditIcon()">
+            {{ 'common.delete' | t }}
+          </button>
         </div>
         <img *ngIf="editIconUrl" class="image-preview" [src]="editIconUrl" alt="preview">
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" (click)="closeModal()">გაუქმება</button>
-        <button class="btn-save" (click)="saveTypeEdit(updatedName.value)" [disabled]="isUploadingImage">შენახვა</button>
+        <button type="button" class="btn-cancel" (click)="closeModal()">{{ 'common.cancel' | t }}</button>
+        <button type="button" class="btn-save" (click)="saveTypeEdit(updatedName.value)" [disabled]="isUploadingImage">
+          {{ 'common.save' | t }}
+        </button>
       </div>
     </div>
   </div>

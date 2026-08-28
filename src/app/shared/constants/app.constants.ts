@@ -21,7 +21,7 @@ export const DEFAULT_ICON =
 
 export const DEFAULT_PAGE_SIZE = 10;
 
-/** Georgian month names (1-indexed via getMonthName). */
+/** Georgian month names (1-indexed via getMonthName). Prefer LanguageService.monthName. */
 export const GEORGIAN_MONTHS = [
   'იანვარი',
   'თებერვალი',
@@ -37,6 +37,22 @@ export const GEORGIAN_MONTHS = [
   'დეკემბერი'
 ] as const;
 
-export function getMonthName(month: number): string {
-  return GEORGIAN_MONTHS[month - 1] ?? '';
+export const ENGLISH_MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+] as const;
+
+export function getMonthName(month: number, lang: 'en' | 'ka' = 'ka'): string {
+  const list = lang === 'en' ? ENGLISH_MONTHS : GEORGIAN_MONTHS;
+  return list[month - 1] ?? '';
 }
