@@ -1,0 +1,31 @@
+<div class="home-page">
+  <header class="home-hero">
+    <p class="home-eyebrow">Global TV</p>
+    <h1 class="home-title">{{ 'home.title' | t }}</h1>
+    <p class="home-sub">{{ 'home.subtitle' | t }}</p>
+  </header>
+
+  <div class="home-actions">
+    <button type="button" class="home-action add" (click)="goAddPurchase()">
+      <span class="action-icon">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+      </span>
+      <span class="action-copy">
+        <span class="action-title">{{ 'home.addPurchase' | t }}</span>
+        <span class="action-desc">{{ 'home.addPurchaseDesc' | t }}</span>
+      </span>
+      <i class="fa-solid fa-arrow-right action-arrow"></i>
+    </button>
+
+    <button type="button" class="home-action history" (click)="goPurchaseHistory()">
+      <span class="action-icon">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </span>
+      <span class="action-copy">
+        <span class="action-title">{{ 'home.showHistory' | t }}</span>
+        <span class="action-desc">{{ 'home.showHistoryDesc' | t }}</span>
+      </span>
+      <i class="fa-solid fa-arrow-right action-arrow"></i>
+    </button>
+  </div>
+</div>

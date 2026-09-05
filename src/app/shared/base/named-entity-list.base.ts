@@ -20,7 +20,7 @@ export abstract class NamedEntityListBase<T extends NamedEntity> implements OnIn
     this.items$ = this.entityService.data$.pipe(
       map((data) => (data ? [...data].reverse() : []))
     );
-    this.entityService.load();
+    this.entityService.loadIfEmpty();
     this.onInitExtra();
   }
 

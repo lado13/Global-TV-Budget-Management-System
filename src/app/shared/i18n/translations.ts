@@ -6,11 +6,19 @@ export type TranslationMap = Record<string, string>;
 
 export const TRANSLATIONS: Record<AppLang, TranslationMap> = {
   en: {
-    'nav.purchases': 'Purchases & history',
+    'nav.home': 'Home',
+    'nav.purchases': 'Purchases',
     'nav.engineers': 'Engineers',
     'nav.merchants': 'Stores',
     'nav.productTypes': 'Product categories',
     'nav.budget': 'Budget',
+
+    'home.title': 'What do you want to do?',
+    'home.subtitle': 'Upload a new purchase or open the full purchase history.',
+    'home.addPurchase': 'Add purchase',
+    'home.addPurchaseDesc': 'Open the upload form and save a new purchase.',
+    'home.showHistory': 'Show purchase history',
+    'home.showHistoryDesc': 'Browse, search, and manage existing purchases.',
 
     'access.title': 'Access required',
     'access.passwordPlaceholder': 'Enter password',
@@ -83,7 +91,7 @@ export const TRANSLATIONS: Record<AppLang, TranslationMap> = {
     'purchase.commentPlaceholder': 'Add a note...',
     'purchase.checkYes': 'Receipt present',
     'purchase.checkNo': 'No receipt',
-    'purchase.uploadCheck': 'Upload receipt image',
+    'purchase.uploadCheck': 'Uploaded receipt image',
     'purchase.chooseFiles': 'Choose files',
     'purchase.filesSelected': 'Selected {{count}} file(s)',
     'purchase.attachedFiles': 'Attached files',
@@ -153,11 +161,19 @@ export const TRANSLATIONS: Record<AppLang, TranslationMap> = {
   },
 
   ka: {
-    'nav.purchases': 'შესყიდვები და ისტორია',
+    'nav.home': 'მთავარი',
+    'nav.purchases': 'შესყიდვები',
     'nav.engineers': 'ინჟინრები',
     'nav.merchants': 'მაღაზიები',
     'nav.productTypes': 'პროდუქტის კატეგორიები',
     'nav.budget': 'ბიუჯეტი',
+
+    'home.title': 'რისი გაკეთება გსურთ?',
+    'home.subtitle': 'ატვირთე ახალი შესყიდვა ან გახსენი შესყიდვების ისტორია.',
+    'home.addPurchase': 'შესყიდვის დამატება',
+    'home.addPurchaseDesc': 'გახსენი ატვირთვის ფორმა და შეინახე ახალი შესყიდვა.',
+    'home.showHistory': 'შესყიდვების ისტორია',
+    'home.showHistoryDesc': 'ნახე, მოძებნე და მართე არსებული შესყიდვები.',
 
     'access.title': 'წვდომა საჭიროა',
     'access.passwordPlaceholder': 'შეიყვანე პაროლი',
@@ -230,13 +246,13 @@ export const TRANSLATIONS: Record<AppLang, TranslationMap> = {
     'purchase.commentPlaceholder': 'დაამატეთ შენიშვნა...',
     'purchase.checkYes': 'ჩეკი არის',
     'purchase.checkNo': 'ჩეკი არ არის',
-    'purchase.uploadCheck': 'ატვირთე ჩეკის სურათი',
+    'purchase.uploadCheck': 'ატვირთული ჩეკის სურათი',
     'purchase.chooseFiles': 'ფაილების არჩევა',
     'purchase.filesSelected': 'არჩეულია {{count}} ფაილი',
     'purchase.attachedFiles': 'მიბმული ფაილები',
     'purchase.filesLoading': 'ფაილი იტვირთება...',
     'purchase.type': 'ტიპი',
-    'purchase.confirmDelete': 'მართლა გინდა ამ შესყიდვის წაშლა?',
+    'purchase.confirmDelete': 'ნამდვილად გსურს ამ შესყიდვის წაშლა?',
     'purchase.confirmDeleteReceipt': 'ნამდვილად გინდა ამ ქვითრის წაშლა?',
 
     'engineer.title': 'ინჟინრები',

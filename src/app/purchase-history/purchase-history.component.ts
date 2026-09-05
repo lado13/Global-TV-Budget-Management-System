@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit, inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, forkJoin } from 'rxjs';
 
 import { PurchaseHistoryService } from '../services/purchase-history.service';
 import { FileService } from '../services/file.service';
@@ -40,12 +41,16 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly lang = inject(LanguageService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   private readonly subscriptions = new Subscription();
 
   form!: FormGroup;
 
   purchases: PurchaseHistory[] = [];
+  filteredPurchases: PurchaseHistory[] = [];
+  pagedPurchases: PurchaseHistory[] = [];
   engineers: Enginner[] = [];
   merchants: Merchant[] = [];
   productTypes: ProductType[] = [];
@@ -62,6 +67,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
 
   readonly defaultAvatar = DEFAULT_AVATAR;
   readonly defaultIcon = DEFAULT_ICON;
+  readonly trackPurchase = (_: number, p: PurchaseHistory): number => p.id;
 
   currentPage = 1;
   pageSize = DEFAULT_PAGE_SIZE;
@@ -100,14 +106,28 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
         this.profiles = res ?? [];
       })
     );
+
+    this.subscriptions.add(
+      this.route.queryParamMap.subscribe((params) => {
+        if (params.get('add') === '1') {
+          this.openCreateModal();
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+          });
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
+    this.clearTempPreviews();
     this.subscriptions.unsubscribe();
   }
 
   openImagePreview(file: Attachment): void {
-    const url = this.getImage(file);
+    const url = this.getPreviewImage(file);
     if (url && this.isImage(file)) {
       this.previewImageUrl = url;
     }
@@ -145,7 +165,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
     this.previewImageUrl = null;
   }
 
-  get filteredPurchases(): PurchaseHistory[] {
+  get filteredList(): PurchaseHistory[] {
     if (!this.searchTerm) return this.purchases;
 
     const term = this.searchTerm.toLowerCase();
@@ -159,20 +179,27 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
     });
   }
 
-  get pagedPurchases(): PurchaseHistory[] {
+  private rebuildPagedList(resetPage = false): void {
+    this.filteredPurchases = this.filteredList;
+    this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize) || 0;
+    if (resetPage) {
+      this.currentPage = 1;
+    } else if (this.currentPage > this.totalPages) {
+      this.currentPage = Math.max(1, this.totalPages);
+    }
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredPurchases.slice(start, start + this.pageSize);
+    this.pagedPurchases = this.filteredPurchases.slice(start, start + this.pageSize);
   }
 
   updatePagination(): void {
-    this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
-    this.currentPage = 1;
+    this.rebuildPagedList(true);
     this.scheduleLoadCheckThumbs();
   }
 
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.rebuildPagedList();
       this.scheduleLoadCheckThumbs();
     }
   }
@@ -180,6 +207,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   prevPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.rebuildPagedList();
       this.scheduleLoadCheckThumbs();
     }
   }
@@ -202,10 +230,10 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
 
   loadAll(): void {
     this.purchaseService.load();
-    this.enginnerService.load();
-    this.enginnerService.loadProfiles();
-    this.merchantService.load();
-    this.productTypeService.load();
+    this.enginnerService.loadIfEmpty();
+    this.enginnerService.loadProfilesIfEmpty();
+    this.merchantService.loadIfEmpty();
+    this.productTypeService.loadIfEmpty();
 
     this.subscriptions.add(
       this.purchaseService.data$.subscribe((res) => {
@@ -217,11 +245,12 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
           });
 
           this.purchases = sorted;
-          this.totalPages = Math.ceil(this.filteredPurchases.length / this.pageSize);
-          this.currentPage = 1;
+          this.rebuildPagedList(true);
           this.scheduleLoadCheckThumbs();
         } else {
           this.purchases = [];
+          this.filteredPurchases = [];
+          this.pagedPurchases = [];
           this.totalPages = 0;
         }
       })
@@ -284,19 +313,35 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
 
           if (this.tempFiles.length > 0 && purchaseId) {
             const id = purchaseId;
-            this.fileService.upload(id, this.tempFiles).subscribe({
-              next: () => {
-                this.thumbDone.delete(id);
-                this.thumbLoading.delete(id);
-                delete this.checkThumbById[id];
-                this.loadCheckThumb(id);
-              },
-              error: (err) => console.error('Failed to upload files', err)
-            });
+            const filesToUpload = [...this.tempFiles];
+            const oldFiles = isEdit ? [...this.files] : [];
             this.tempFiles = [];
+            this.clearTempPreviews();
+
+            const refreshThumb = (): void => {
+              this.thumbDone.delete(id);
+              this.thumbLoading.delete(id);
+              delete this.checkThumbById[id];
+              this.loadCheckThumb(id);
+            };
+
+            const uploadNew = (): void => {
+              this.fileService.upload(id, filesToUpload).subscribe({
+                next: () => refreshThumb(),
+                error: (err: unknown) => console.error('Failed to replace purchase files', err)
+              });
+            };
+
+            if (oldFiles.length > 0) {
+              forkJoin(oldFiles.map((f) => this.fileService.delete(f.id, id))).subscribe({
+                next: () => uploadNew(),
+                error: (err: unknown) => console.error('Failed to replace purchase files', err)
+              });
+            } else {
+              uploadNew();
+            }
           }
 
-          this.purchaseService.load();
           this.closeFormModal();
           this.isSaving = false;
         },
@@ -351,10 +396,9 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   }
 
   deleteFile(file: Attachment): void {
-    if (!this.selectedPurchase) return;
+    const purchaseId = this.selectedPurchase?.id || +this.form?.get('id')?.value || 0;
+    if (!purchaseId) return;
     if (!confirm(this.lang.t('purchase.confirmDeleteReceipt'))) return;
-
-    const purchaseId = this.selectedPurchase.id;
 
     this.fileService.delete(file.id, purchaseId).subscribe({
       next: () => {
@@ -369,13 +413,18 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
   }
 
   getImage(file: Attachment): string {
-    if (!file) return '';
+    if (!file?.id) return '';
+    // Prefer download URL — avoids huge base64 strings in list thumbs / CD.
+    return environment.fileDownloadUrl(file.id);
+  }
 
+  /** Modal preview: use embedded content when present, otherwise download URL. */
+  getPreviewImage(file: Attachment): string {
+    if (!file) return '';
     if (file.content) {
       return `data:${file.fileType};base64,${file.content}`;
     }
-
-    return environment.fileDownloadUrl(file.id);
+    return file.id ? environment.fileDownloadUrl(file.id) : '';
   }
 
   isImage(file: Attachment): boolean {
@@ -396,6 +445,7 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
 
     this.clearTempPreviews();
     this.tempFiles = [];
+    this.files = [];
     this.isFormModalOpen = true;
   }
 
@@ -403,13 +453,18 @@ export class PurchaseHistoryComponent implements OnInit, OnDestroy {
     this.form.patchValue(p);
     this.clearTempPreviews();
     this.tempFiles = [];
+    this.files = [];
     this.isFormModalOpen = true;
+    if (p.id) {
+      this.fileService.loadFiles(p.id);
+    }
   }
 
   closeFormModal(): void {
     this.isFormModalOpen = false;
     this.clearTempPreviews();
     this.tempFiles = [];
+    this.files = [];
   }
 
   getMerchantIcon(id: number): string {

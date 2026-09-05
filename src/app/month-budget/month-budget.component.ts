@@ -43,7 +43,7 @@ export class MonthBudgetComponent implements OnInit {
   selectedBudget: MonthBudget | null = null;
 
   ngOnInit(): void {
-    this.service.load();
+    this.service.loadIfEmpty();
   }
 
   openCreateModal(): void {

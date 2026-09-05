@@ -31,6 +31,11 @@ export class EnginnerService extends NamedEntityService<Enginner> {
     });
   }
 
+  loadProfilesIfEmpty(): void {
+    if (this._profileData$.value.length > 0) return;
+    this.loadProfiles();
+  }
+
   getProfileByEngineerId(engineerId: number): EngineerProfile | undefined {
     return this._profileData$.value.find((p) => p.engineerId === engineerId);
   }

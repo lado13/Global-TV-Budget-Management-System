@@ -26,6 +26,12 @@ export abstract class BaseStoreService<T> {
     });
   }
 
+  /** Skip network when this store already has data (cuts duplicate GETs). */
+  loadIfEmpty(): void {
+    if (this._data$.value.length > 0) return;
+    this.load();
+  }
+
   /** Pipe helper: reload the store after a mutating request succeeds. */
   protected refreshAfter<R>(request$: Observable<R>): Observable<R> {
     return request$.pipe(tap(() => this.load()));

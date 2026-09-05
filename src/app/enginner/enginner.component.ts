@@ -57,7 +57,7 @@ export class EnginnerComponent extends NamedEntityListBase<Enginner> {
   isUploadingImage = false;
 
   protected override onInitExtra(): void {
-    this.entityService.loadProfiles();
+    this.entityService.loadProfilesIfEmpty();
     this.entityService.engineerProfiles$.subscribe((data) => {
       this.profiles = data ?? [];
     });

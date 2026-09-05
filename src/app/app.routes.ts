@@ -11,6 +11,17 @@ export const routes: Routes = [
     component: MainComponent,
     children: [
       {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./home/home.component').then((m) => m.HomeComponent)
+      },
+      {
+        path: 'home',
+        redirectTo: '',
+        pathMatch: 'full'
+      },
+      {
         path: 'enginner',
         loadComponent: () =>
           import('./enginner/enginner.component').then((m) => m.EnginnerComponent)
@@ -37,7 +48,7 @@ export const routes: Routes = [
             (m) => m.PurchaseHistoryComponent
           )
       },
-      { path: '', redirectTo: 'Purchase', pathMatch: 'full' }
+      { path: '**', redirectTo: '' }
     ]
   }
 ];

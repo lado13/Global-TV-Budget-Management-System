@@ -32,7 +32,7 @@
     <p class="card-title">{{ 'purchase.history' | t }}</p>
 
     <div class="history-list">
-      <div *ngFor="let p of pagedPurchases" class="history-item purchase-card">
+      <div *ngFor="let p of pagedPurchases; trackBy: trackPurchase" class="history-item purchase-card">
         <div class="purchase-card-top">
           <div class="purchase-card-top-row">
             <span class="id-box">#{{ p.id }}</span>
@@ -59,6 +59,8 @@
               [src]="getProfileImage(p.buyerId)"
               [alt]="getBuyerName(p.buyerId, p)"
               [title]="'common.fullImage' | t"
+              loading="lazy"
+              decoding="async"
               (click)="openProfilePreview(p.buyerId); $event.stopPropagation()"
             >
             <span class="cell-text">{{ getBuyerName(p.buyerId, p) }}</span>
@@ -70,6 +72,8 @@
               [src]="getMerchantIcon(p.merchantId)"
               [alt]="getMerchantName(p.merchantId, p)"
               [title]="'common.fullImage' | t"
+              loading="lazy"
+              decoding="async"
               (click)="openMerchantPreview(p.merchantId); $event.stopPropagation()"
             >
             <span class="cell-text">{{ getMerchantName(p.merchantId, p) }}</span>
@@ -81,6 +85,8 @@
               [src]="getProductTypeIcon(p.porductTypeId)"
               [alt]="getProductTypeName(p.porductTypeId, p)"
               [title]="'common.fullImage' | t"
+              loading="lazy"
+              decoding="async"
               (click)="openProductTypePreview(p.porductTypeId); $event.stopPropagation()"
             >
             <span class="cell-text">{{ getProductTypeName(p.porductTypeId, p) }}</span>
@@ -232,7 +238,33 @@
         <div class="view-files-block">
           <div class="view-files-head">
             <h4>📁 {{ 'purchase.uploadCheck' | t }}</h4>
-            <span class="files-count" *ngIf="tempFiles.length">{{ tempFiles.length }}</span>
+            <span class="files-count" *ngIf="files.length || tempFiles.length">
+              {{ files.length + tempFiles.length }}
+            </span>
+          </div>
+
+          <div class="files-container form-previews" *ngIf="files.length">
+            <div class="file-card" *ngFor="let file of files">
+              <div class="file-preview" (click)="openImagePreview(file)">
+                <ng-container *ngIf="isImage(file); else editDocIcon">
+                  <img [src]="getImage(file)" [alt]="file.fileName" />
+                  <div class="zoom-overlay">
+                    <span>🔍</span>
+                  </div>
+                </ng-container>
+                <ng-template #editDocIcon>
+                  <div class="file-icon">📄</div>
+                </ng-template>
+              </div>
+              <div class="file-info">
+                <span class="file-name" [title]="file.fileName">{{ file.fileName }}</span>
+                <div class="file-btns">
+                  <button type="button" class="btn-mini-delete" (click)="deleteFile(file)">
+                    {{ 'common.delete' | t }}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="file-upload-section form-upload">

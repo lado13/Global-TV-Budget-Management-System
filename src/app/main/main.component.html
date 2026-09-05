@@ -39,6 +39,7 @@
         class="nav-card"
         [routerLink]="item.requiresAccess ? null : item.path"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/' }"
         (click)="onNavClick(item, $event)"
       >
         <span class="nav-card-icon">
