@@ -280,10 +280,10 @@
           <div class="files-container form-previews" *ngIf="tempPreviewUrls.length">
             <div class="file-card" *ngFor="let url of tempPreviewUrls; let i = index">
               <div class="file-preview">
-                <img [src]="url" [alt]="tempFiles[i]?.name || 'preview'" />
+                <img [src]="url" [alt]="tempFiles[i].name || 'preview'" />
               </div>
               <div class="file-info">
-                <span class="file-name" [title]="tempFiles[i]?.name">{{ tempFiles[i]?.name }}</span>
+                <span class="file-name" [title]="tempFiles[i].name">{{ tempFiles[i].name }}</span>
               </div>
             </div>
           </div>
@@ -375,21 +375,21 @@
           </div>
         </div>
 
-        <div class="view-note" *ngIf="selectedPurchase?.additionalComment">
+        <div class="view-note" *ngIf="selectedPurchase?.additionalComment as comment">
           <span class="party-label">{{ 'purchase.comment' | t }}</span>
-          <p>{{ selectedPurchase?.additionalComment }}</p>
+          <p>{{ comment }}</p>
         </div>
 
         <div class="view-files-block">
           <div class="view-files-head">
             <h4>{{ 'purchase.attachedFiles' | t }}</h4>
-            <span class="files-count" *ngIf="files?.length">{{ files.length }}</span>
+            <span class="files-count" *ngIf="files.length">{{ files.length }}</span>
           </div>
 
-          <div class="files-container" *ngIf="files?.length; else noFilesTpl">
+          <div class="files-container" *ngIf="files.length; else noFilesTpl">
             <div class="file-card" *ngFor="let file of files">
               <div class="file-preview" (click)="openImagePreview(file)">
-                <ng-container *ngIf="file?.fileType?.includes('image'); else docIcon">
+                <ng-container *ngIf="file.fileType.includes('image'); else docIcon">
                   <img [src]="getImage(file)" [alt]="file.fileName" />
                   <div class="zoom-overlay">
                     <span>🔍</span>
